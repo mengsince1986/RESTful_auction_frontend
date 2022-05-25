@@ -9,7 +9,14 @@ import {
 } from "@mui/material";
 import TablePagination from '@mui/material/TablePagination';
 import DeleteIcon from "@mui/icons-material/Delete";
-import { DataGrid, GridColDef, GridValueGetterParams} from "@mui/x-data-grid";
+import {
+    DataGrid,
+    GridColDef,
+    GridValueGetterParams,
+    GridToolbar,
+    GridToolbarExport,
+    GridToolbarContainer, GridToolbarQuickFilter, GridToolbarFilterButton
+} from "@mui/x-data-grid";
 import CSS from 'csstype';
 // When using TypeScript 4.x and above
 import type {} from '@mui/x-data-grid/themeAugmentation';
@@ -27,78 +34,12 @@ const theme = createTheme({
     },
 });
 
-
-const card: CSS.Properties = {
-    padding: "10px",
-    margin: "50px"
-}
-
-interface HeadCell {
-    id: string;
-    label: string;
-    numeric: boolean;
-}
-
-const headCells: readonly HeadCell[] = [
-    {id: 'auctionId', label: 'ID', numeric: true},
-    {id: 'image', label: 'Image', numeric: false},
-    {id: 'title', label: 'Title', numeric: false},
-    {id: 'closeDays', label: 'Days to Close', numeric: true},
-    {id: 'category', label: 'Category', numeric: false},
-    {id: 'seller', label: 'Seller', numeric: false},
-    {id: 'highestBid', label: 'Highest Bid $', numeric: true},
-    {id: 'reserve', label: 'Reserve $', numeric: true},
-    {id: 'hasMetReserve', label: 'Met Reserve', numeric: false}
-];
-
-
 const AuctionsDataGrid = () => {
     const [auctions, setAuctions] = React.useState<Array<Auction>>([])
     const [categories, setCategories] = React.useState<Array<Category>>([])
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
-    const [page, setPage] = React.useState(2);
-    const [rowsPerPage, setRowsPerPage] = React.useState(10);
-
-    /*    const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false)
-        const [dialogUser, setDialogUser] = React.useState<User>({username: "", user_id: -1})
-
-        const [snackOpen, setSnackOpen] = React.useState(false)
-        const [snackMessage, setSnackMessage] = React.useState("")
-        const handleSnackClose = (event?: React.SyntheticEvent | Event,
-                                  reason?: string) => {
-            if (reason === 'clickaway') {
-                return;
-            }
-            setSnackOpen(false);
-        };*/
-
-
-    /*
-        const navigate = useNavigate();
-        const handleDeleteDialogOpen = (user: User) => {
-            setDialogUser(user)
-            setOpenDeleteDialog(true);
-        };
-        const handleDeleteDialogClose = () => {
-            setDialogUser({username: "", user_id: -1})
-            setOpenDeleteDialog(false);
-        };
-
-        const deleteUser = (user: User) => {
-            axios.delete('http://localhost:3000/api/users/' + user.user_id)
-                .then((response) => {
-                    handleDeleteDialogClose()
-                    //navigate('/users/')
-                    getUsers()
-                    setSnackMessage("User Deleted")
-                    setSnackOpen(true)
-                }, (error) => {
-                    setErrorFlag(true)
-                    setErrorMessage(error.toString())
-                })
-        }
-    */
+    const [pageSize, setPageSize] = React.useState<number>(5);
 
 
     // useEffect
@@ -132,50 +73,9 @@ const AuctionsDataGrid = () => {
         getCategories()
     }, [])
 
-    /*  const list_of_users = () => {
-          return users.map((item: User) =>
-              <tr>
-                  <th scope="row">{item.user_id}</th>
-                  <td>{item.username}</td>
-                  <td><Link to={"/users/" + item.user_id}>Go to
-                      user</Link></td>
-                  <td>
-                      <Button variant="outlined" endIcon={<DeleteIcon/>} onClick={()=>{handleDeleteDialogOpen(item)}}>
-                          Delete
-                      </Button>
-                      <Dialog
-                          open={openDeleteDialog}
-                          onClose={handleDeleteDialogClose}
-                          aria-labelledby="alert-dialog-title"
-                          aria-describedby="alert-dialog-description">
-                          <DialogTitle id="alert-dialog-title">
-                              {"Delete User?"}
-                          </DialogTitle>
-                          <DialogContent>
-                              <DialogContentText id="alert-dialog-description">
-                                  Are you sure you want to delete this user?
-                              </DialogContentText>
-                          </DialogContent>
-                          <DialogActions>
-                              <Button onClick={handleDeleteDialogClose}>Cancel</Button>
-                              <Button variant="outlined" color="error" onClick={()=>{deleteUser(dialogUser)}} autoFocus>
-                                  Delete
-                              </Button>
-                          </DialogActions>
-                      </Dialog>
 
-                      <button type="button">Edit</button>
-                  </td>
-              </tr>
-          )
-      }*/
-
-    const getAuctionImageUrl = (auctionId: number) => {
-        return 'http://localhost:4941/api/v1/auctions/' + auctionId + '/image'
-    }
-
-    const daysBeforeClose = (strCloseDate: string) => {
-        const closeDate = new Date(strCloseDate);
+    const daysBeforeClose = (params:GridValueGetterParams) => {
+        const closeDate = new Date(params.value);
         const now = new Date();
 
         const differ_in_time = closeDate.getTime() - now.getTime();
@@ -192,9 +92,9 @@ const AuctionsDataGrid = () => {
         }
     }
 
-    const getCategoryName = (categoryId: number) => {
+    const getCategoryName = (params:GridValueGetterParams) => {
         const categoryLst = categories.filter((category) => {
-            return category["categoryId"] === categoryId
+            return category["categoryId"] === params.value
         })
         if (categoryLst.length === 0) {
             return "Not Specified"
@@ -203,159 +103,110 @@ const AuctionsDataGrid = () => {
         }
     }
 
-    const getHighestBid = (bid: number) => {
-        if (bid === null || bid <= 0) {
+    const getFullName = (params:GridValueGetterParams) => {
+        return `${params.row.sellerFirstName || ''} ${params.row.sellerLastName || ''}`
+    }
+
+    const getHighestBid = (params:GridValueGetterParams) => {
+        if (params.value === null || params.value <= 0) {
             return 0
         } else {
-            return bid
+            return params.value
         }
     }
 
-    const getReserve = (reserve: number) => {
-        if (reserve === null || reserve <= 0) {
+    const getReserve = (params:GridValueGetterParams) => {
+        if (params.value === null || params.value <= 0) {
             return 0
         } else {
-            return reserve
+            return params.value
         }
     }
 
-    const auction_rows = () => {
-        return auctions.map((row: Auction) =>
-            <TableRow hover
-                      tabIndex={-1}
-                      key={row.auctionId}
-            >
-                <TableCell align="right">
-                    {row.auctionId}
-                </TableCell>
-                <TableCell align="left" width="100">
-                    <Card>
-                        <CardMedia
-                            component="img"
-                            height="70"
-                            sx={{objectFit: "cover"}}
-                            image={getAuctionImageUrl(row.auctionId)}
-                            alt="Auction hero"
-                        />
-                    </Card>
-                </TableCell>
-                <TableCell align="left">
-                    {row.title}
-                </TableCell>
-                <TableCell align="right">
-                    {daysBeforeClose(row.endDate)}
-                </TableCell>
-                <TableCell align="left">
-                    {getCategoryName(row.categoryId)}
-                </TableCell>
-                <TableCell align="left">
-                    {row.sellerFirstName} {row.sellerLastName}
-                </TableCell>
-                <TableCell align="right">
-                    {getHighestBid(row.highestBid)}
-                </TableCell>
-                <TableCell align="right">
-                    {getReserve(row.reserve)}
-                </TableCell>
-                <TableCell align="left">
-                    {(getHighestBid(row.highestBid) - getReserve(row.reserve)) >= 0? "Yes" : "No"}
-                </TableCell>
-                {/*                <TableCell align="left"><Link
-                    to={"/users/" + row.user_id}>Go to user</Link></TableCell>
-                <TableCell align="left">*/}
-                {/* <Button variant="outlined" endIcon={<EditIcon/>}
-                        //onClick={() => {handleEditDialogOpen(row)}}
-                    >
-                        Edit
-                    </Button>
-                    <Button variant="outlined" endIcon={<DeleteIcon/>}
-                            onClick={() => {
-                                handleDeleteDialogOpen(row)
-                            }}>
-                        Delete
-                    </Button>
-                    <Dialog
-                        open={openDeleteDialog}
-                        onClose={handleDeleteDialogClose}
-                        aria-labelledby="alert-dialog-title"
-                        aria-describedby="alert-dialog-description">
-                        <DialogTitle id="alert-dialog-title">
-                            {"Delete User?"}
-                        </DialogTitle>
-                        <DialogContent>
-                            <DialogContentText id="alert-dialog-description">
-                                Are you sure you want to delete this user?
-                            </DialogContentText>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button onClick={handleDeleteDialogClose}>Cancel</Button>
-                            <Button variant="outlined" color="error" onClick={() => {
-                                deleteUser(dialogUser)
-                            }} autoFocus>
-                                Delete
-                            </Button>
-                        </DialogActions>
-                    </Dialog>
-                    <Snackbar
-                        autoHideDuration={6000}
-                        open={snackOpen}
-                        onClose={handleSnackClose}
-                        key={snackMessage}
-                    >
-                        <Alert onClose={handleSnackClose} severity="success" sx={{
-                            width: '100%'
-                        }}>
-                            {snackMessage}
-                        </Alert>
-                    </Snackbar>
-                </TableCell>*/}
-            </TableRow>
-        )
-    }
 
     const columns: GridColDef[] = [
-        { field: 'auctionId', headerName: 'ID', width: 90 },
+        { field: 'id', headerName: 'ID', width: 90 },
         {
-            field: 'firstName',
-            headerName: 'First name',
+            field: 'image',
+            headerName: 'Image',
             width: 150,
+            editable: true,
+            sortable: false,
+            renderCell: (params) => <img
+                src={'http://localhost:4941/api/v1/auctions/'
+                    + params.value + '/image'}
+                alt="hero" width="100%"/>
+        },
+        {
+            field: 'title',
+            headerName: 'Title',
+            width: 280,
             editable: true,
         },
         {
-            field: 'lastName',
-            headerName: 'Last name',
+            field: 'closeDays',
+            headerName: 'Days to close',
             width: 150,
             editable: true,
+            valueGetter: daysBeforeClose
         },
         {
-            field: 'age',
-            headerName: 'Age',
+            field: 'category',
+            headerName: 'Category',
+            width: 160,
+            editable: true,
+            valueGetter: getCategoryName
+        },
+        {
+            field: 'sellerName',
+            headerName: 'Seller Name',
+            width: 150,
+            editable: true,
+            valueGetter: getFullName
+        },
+        {
+            field: "bid",
+            headerName: 'Bid',
             type: 'number',
             width: 110,
             editable: true,
+            valueGetter: getHighestBid
         },
         {
-            field: 'fullName',
-            headerName: 'Full name',
-            description: 'This column has a value getter and is not sortable.',
-            sortable: false,
-            width: 160,
-            valueGetter: (params: GridValueGetterParams) =>
-                `${params.row.firstName || ''} ${params.row.lastName || ''}`,
+            field: "reserve",
+            headerName: 'Reserve',
+            type: 'number',
+            width: 110,
+            editable: true,
+            valueGetter: getReserve
         },
     ];
 
-    const rows = [
-        { id: 1, lastName: 'Snow', firstName: 'Jon', age: 35 },
-        { id: 2, lastName: 'Lannister', firstName: 'Cersei', age: 42 },
-        { id: 3, lastName: 'Lannister', firstName: 'Jaime', age: 45 },
-        { id: 4, lastName: 'Stark', firstName: 'Arya', age: 16 },
-        { id: 5, lastName: 'Targaryen', firstName: 'Daenerys', age: null },
-        { id: 6, lastName: 'Melisandre', firstName: null, age: 150 },
-        { id: 7, lastName: 'Clifford', firstName: 'Ferrara', age: 44 },
-        { id: 8, lastName: 'Frances', firstName: 'Rossini', age: 36 },
-        { id: 9, lastName: 'Roxie', firstName: 'Harvey', age: 65 },
-    ];
+    const rows = auctions.map((auction) => {
+        return {id: auction.auctionId,
+        image: auction.auctionId,
+        title: auction.title,
+        closeDays: auction.endDate,
+        category: auction.categoryId,
+        sellerFirstName: auction.sellerFirstName,
+        sellerLastName: auction.sellerLastName,
+        bid: auction.highestBid,
+        reserve: auction.reserve}
+    })
+
+    const tableToolBar = () => {
+        return (
+            <GridToolbarContainer>
+                <GridToolbarQuickFilter />
+            </GridToolbarContainer>
+        )
+    }
+
+    const card: CSS.Properties = {
+        padding: "10px",
+        margin: "50px",
+        height: "600px",
+    }
 
     if (errorFlag) {
         return (
@@ -368,15 +219,23 @@ const AuctionsDataGrid = () => {
         )
     } else {
         return (
-            <div style={{height: 400, width: '100%'}}>
-                <DataGrid
-                    rows={rows}
-                    columns={columns}
-                    pageSize={5}
-                    rowsPerPageOptions={[5]}
-                    checkboxSelection
-                    disableSelectionOnClick
-                />
+            <div style={{height: 800, width: '100%'}}>
+                <div style={{ display: 'flex', height: '100%'}}>
+                    <div style={{ flexGrow: 1}}>
+                        <DataGrid
+                            autoHeight
+                            rowHeight={120}
+                            rows={rows}
+                            disableColumnSelector
+                            columns={columns}
+                            components={{Toolbar: tableToolBar}}
+                            pageSize={pageSize}
+                            onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+                            rowsPerPageOptions={[5, 10]}
+                            pagination
+                        />
+                    </div>
+                </div>
             </div>
         )
     }

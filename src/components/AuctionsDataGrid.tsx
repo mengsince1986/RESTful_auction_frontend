@@ -75,7 +75,7 @@ const AuctionsDataGrid = () => {
     }, [])
 
 
-    const daysBeforeClose = (params:GridValueGetterParams) => {
+    const daysBeforeClose = (params: GridValueGetterParams) => {
         const closeDate = new Date(params.value);
         const now = new Date();
         const differ_in_time = closeDate.getTime() - now.getTime();
@@ -95,7 +95,7 @@ const AuctionsDataGrid = () => {
         }
     }
 
-    const getCategoryName = (params:GridValueGetterParams) => {
+    const getCategoryName = (params: GridValueGetterParams) => {
         const categoryLst = categories.filter((category) => {
             return category["categoryId"] === params.value
         })
@@ -106,11 +106,11 @@ const AuctionsDataGrid = () => {
         }
     }
 
-    const getFullName = (params:GridValueGetterParams) => {
+    const getFullName = (params: GridValueGetterParams) => {
         return `${params.row.sellerFirstName || ''} ${params.row.sellerLastName || ''}`
     }
 
-    const getHighestBid = (params:GridValueGetterParams) => {
+    const getHighestBid = (params: GridValueGetterParams) => {
         if (params.value === null || params.value <= 0) {
             return 0
         } else {
@@ -118,7 +118,7 @@ const AuctionsDataGrid = () => {
         }
     }
 
-    const getReserve = (params:GridValueGetterParams) => {
+    const getReserve = (params: GridValueGetterParams) => {
         if (params.value === null || params.value <= 0) {
             return 0
         } else {
@@ -126,7 +126,7 @@ const AuctionsDataGrid = () => {
         }
     }
 
-    const hasMetReserve = (params:GridValueGetterParams) => {
+    const hasMetReserve = (params: GridValueGetterParams) => {
         if (params.row.bid >= params.row.reserve) {
             return "Yes"
         } else {
@@ -138,8 +138,9 @@ const AuctionsDataGrid = () => {
         {
             field: 'id',
             headerName: 'ID',
-            type:'number',
-            width: 100 },
+            type: 'number',
+            width: 100
+        },
         {
             field: "link",
             headerName: 'Link',
@@ -170,7 +171,7 @@ const AuctionsDataGrid = () => {
         {
             field: 'closeDays',
             headerName: 'Days to close',
-            type:'number',
+            type: 'number',
             width: 150,
             editable: true,
             valueGetter: daysBeforeClose
@@ -227,9 +228,10 @@ const AuctionsDataGrid = () => {
     ];
 
     const rows = auctions.map((auction) => {
-        return {id: auction.auctionId,
-        image: auction.auctionId,
-        title: auction.title,
+        return {
+            id: auction.auctionId,
+            image: auction.auctionId,
+            title: auction.title,
             closeDays: auction.endDate,
             category: auction.categoryId,
             sellerFirstName: auction.sellerFirstName,
@@ -265,42 +267,35 @@ const AuctionsDataGrid = () => {
         )
     } else {
         return (
-
-            <Box
-                sx={{
-                    width: 1800,
-                    height: 1200,
-                    mx: "auto",
-                    my: 10
-
-                }}
-            >
-                <h1>Auction List</h1>
-                <div style={{height: "100%", width: '100%'}}>
-                    <DataGrid
-                        autoHeight
-                        rowHeight={120}
-                        disableColumnSelector
-                        rows={rows}
-                        columns={columns}
-                        components={{Toolbar: tableToolBar}}
-                        pageSize={pageSize}
-                        onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-                        rowsPerPageOptions={[5, 10]}
-                        pagination
-                        initialState={{
-                            sorting: {
-                                sortModel: [
-                                    {
-                                        field: 'closeDays',
-                                        sort: 'asc',
-                                    },
-                                ],
-                            },
-                        }}
-                    />
+            <div style={{height: 400, width: '100%'}}>
+                <div style={{display: 'flex', height: '100%'}}>
+                    <div style={{flexGrow: 1, margin: "auto", maxWidth: 1900}}>
+                        <h1>Auction List</h1>
+                        <DataGrid
+                            autoHeight
+                            rowHeight={120}
+                            disableColumnSelector
+                            rows={rows}
+                            columns={columns}
+                            components={{Toolbar: tableToolBar}}
+                            pageSize={pageSize}
+                            onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+                            rowsPerPageOptions={[5, 10]}
+                            pagination
+                            initialState={{
+                                sorting: {
+                                    sortModel: [
+                                        {
+                                            field: 'closeDays',
+                                            sort: 'asc',
+                                        },
+                                    ],
+                                },
+                            }}
+                        />
+                    </div>
                 </div>
-            </Box>
+            </div>
         )
     }
 }

@@ -3,10 +3,10 @@ import axios from "axios";
 import {Delete, Edit} from "@mui/icons-material";
 //import {useUserStore} from "../store/";
 import {
-    Alert,
+    Alert, AlertTitle,
     Button, Card, CardActions, CardContent, CardMedia, Dialog,
     DialogActions, DialogContent, DialogContentText,
-    DialogTitle, IconButton, Snackbar, TextField, Typography
+    DialogTitle, IconButton, Paper, Snackbar, TextField, Typography
 } from "@mui/material";
 import CSS from 'csstype';
 import {useParams} from "react-router-dom";
@@ -83,6 +83,11 @@ const Auction = () => {
         }
     }
 
+    const strToDate = (dateStr: string) => {
+        const closeDate = new Date(dateStr);
+        return closeDate.toLocaleDateString()
+    }
+
     const getCategoryName = (categoryId: number) => {
         const categoryLst = categories.filter((category) => {
             return category["categoryId"] === categoryId
@@ -120,38 +125,65 @@ const Auction = () => {
         padding: "0px"
     }
 
-    return (
-        <Card sx={auctionCardStyles}>
-            <CardMedia
-                component="img"
-                height="200"
-                // width="200"
-                sx={{objectFit: "cover"}}
-                image={getAuctionImageUrl()}
-                alt="Auction hero"
-            />
+    const card: CSS.Properties = {
+        padding: "10px",
+        margin: "auto",
+        display: "block",
+        width: "fit-content"
+    }
 
-            <CardContent>
-                <Typography variant="h6">
-                    {auction.title}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                    Status: {DaysBeforeClose(auction.endDate)}
-                </Typography>
-                <Typography variant="body1" color="text.secondary" >
-                    Category: {getCategoryName(auction.categoryId)}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                    Seller:  {auction.sellerFirstName} {auction.sellerLastName}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                    Highest Bid: {getHighestBid(auction.highestBid)}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                    Reserve: {getReserve(auction.reserve)}
-                </Typography>
-            </CardContent>
-        </Card>
+    return (
+        <Paper elevation={10} style={card}>
+            <h1>Auction Detail</h1>
+            <div style={{
+                display: "inline-block", maxWidth: "965px",
+                minWidth: "320"
+            }}>
+                {errorFlag ?
+                    <Alert severity="error">
+                        <AlertTitle>Error</AlertTitle>
+                        {errorMessage}
+                    </Alert>
+                    : ""}
+                <Card sx={auctionCardStyles}>
+                    <CardMedia
+                        component="img"
+                        height="200"
+                        // width="200"
+                        sx={{objectFit: "cover"}}
+                        image={getAuctionImageUrl()}
+                        alt="Auction hero"
+                    />
+
+                    <CardContent>
+                        <Typography variant="h6">
+                            {auction.title}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                            Status: {DaysBeforeClose(auction.endDate)}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                            End Date: {strToDate(auction.endDate)}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                            Category: {getCategoryName(auction.categoryId)}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                            Seller: {auction.sellerFirstName} {auction.sellerLastName}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                            Number of bids: {auction.numBids}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                            Highest Bid: {getHighestBid(auction.highestBid)}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                            Reserve: {getReserve(auction.reserve)}
+                        </Typography>
+                    </CardContent>
+                </Card>
+            </div>
+        </Paper>
     )
 }
 

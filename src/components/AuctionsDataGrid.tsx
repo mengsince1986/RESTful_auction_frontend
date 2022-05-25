@@ -20,6 +20,7 @@ import {
 import CSS from 'csstype';
 // When using TypeScript 4.x and above
 import type {} from '@mui/x-data-grid/themeAugmentation';
+import Box from "@mui/material/Box";
 
 const theme = createTheme({
     components: {
@@ -134,7 +135,19 @@ const AuctionsDataGrid = () => {
     }
 
     const columns: GridColDef[] = [
-        { field: 'id', headerName: 'ID', width: 90 },
+        {
+            field: 'id',
+            headerName: 'ID',
+            type:'number',
+            width: 100 },
+        {
+            field: "link",
+            headerName: 'Link',
+            type: 'string',
+            width: 100,
+            editable: true,
+            renderCell: (params) => (<a href={'http://localhost:8080/auctions/' + params.row.id}>Details</a>)
+        },
         {
             field: 'image',
             headerName: 'Image',
@@ -210,33 +223,27 @@ const AuctionsDataGrid = () => {
             editable: true,
             valueGetter: hasMetReserve
         },
-        {
-            field: "link",
-            headerName: 'Link to details',
-            type: 'string',
-            width: 150,
-            editable: true,
-            renderCell: (params) => (<a href={'http://localhost:8080/auctions/' + params.row.id}>Details</a>)
-        }
+
     ];
 
     const rows = auctions.map((auction) => {
         return {id: auction.auctionId,
         image: auction.auctionId,
         title: auction.title,
-        closeDays: auction.endDate,
-        category: auction.categoryId,
-        sellerFirstName: auction.sellerFirstName,
-        sellerLastName: auction.sellerLastName,
-        bid: auction.highestBid,
-        reserve: auction.reserve}
+            closeDays: auction.endDate,
+            category: auction.categoryId,
+            sellerFirstName: auction.sellerFirstName,
+            sellerLastName: auction.sellerLastName,
+            bid: auction.highestBid,
+            reserve: auction.reserve
+        }
     })
 
     const tableToolBar = () => {
         return (
             <GridToolbarContainer>
-                <GridToolbarQuickFilter />
-                <GridToolbarFilterButton />
+                <GridToolbarQuickFilter/>
+                <GridToolbarFilterButton/>
             </GridToolbarContainer>
         )
     }
@@ -258,34 +265,42 @@ const AuctionsDataGrid = () => {
         )
     } else {
         return (
-            <div style={{height: 800, width: '100%'}}>
-                <div style={{ display: 'flex', height: '100%'}}>
-                    <div style={{ flexGrow: 1}}>
-                        <DataGrid
-                            autoHeight
-                            rowHeight={120}
-                            rows={rows}
-                            disableColumnSelector
-                            columns={columns}
-                            components={{Toolbar: tableToolBar}}
-                            pageSize={pageSize}
-                            onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-                            rowsPerPageOptions={[5, 10]}
-                            pagination
-                            initialState={{
-                                sorting: {
-                                    sortModel: [
-                                        {
-                                            field: 'closeDays',
-                                            sort: 'asc',
-                                        },
-                                    ],
-                                },
-                            }}
-                        />
-                    </div>
+
+            <Box
+                sx={{
+                    width: 1800,
+                    height: 1200,
+                    mx: "auto",
+                    my: 10
+
+                }}
+            >
+                <h1>Auction List</h1>
+                <div style={{height: "100%", width: '100%'}}>
+                    <DataGrid
+                        autoHeight
+                        rowHeight={120}
+                        disableColumnSelector
+                        rows={rows}
+                        columns={columns}
+                        components={{Toolbar: tableToolBar}}
+                        pageSize={pageSize}
+                        onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+                        rowsPerPageOptions={[5, 10]}
+                        pagination
+                        initialState={{
+                            sorting: {
+                                sortModel: [
+                                    {
+                                        field: 'closeDays',
+                                        sort: 'asc',
+                                    },
+                                ],
+                            },
+                        }}
+                    />
                 </div>
-            </div>
+            </Box>
         )
     }
 }

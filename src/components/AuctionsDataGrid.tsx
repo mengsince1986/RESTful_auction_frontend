@@ -15,7 +15,7 @@ import {
     GridValueGetterParams,
     GridToolbar,
     GridToolbarExport,
-    GridToolbarContainer, GridToolbarQuickFilter, GridToolbarFilterButton
+    GridToolbarContainer, GridToolbarQuickFilter, GridToolbarFilterButton, GridToolbarColumnsButton
 } from "@mui/x-data-grid";
 import CSS from 'csstype';
 // When using TypeScript 4.x and above
@@ -77,18 +77,20 @@ const AuctionsDataGrid = () => {
     const daysBeforeClose = (params:GridValueGetterParams) => {
         const closeDate = new Date(params.value);
         const now = new Date();
+        const differ_in_time = closeDate.getTime() - now.getTime();
+        const differ_in_days = differ_in_time / (1000 * 3600 * 24);
+        return Math.floor(differ_in_days);
+    }
+
+    const isClose = (params: GridValueGetterParams) => {
+        const closeDate = new Date(params.row.closeDays);
+        const now = new Date();
 
         const differ_in_time = closeDate.getTime() - now.getTime();
         if (differ_in_time <= 0) {
-            return 0
+            return "close"
         } else {
-            const differ_in_days = differ_in_time / (1000 * 3600 * 24);
-            if (differ_in_days < 1) {
-                return 1
-            } else {
-                const days =  Math.floor(differ_in_days);
-                return days
-            }
+            return "open"
         }
     }
 
@@ -123,13 +125,21 @@ const AuctionsDataGrid = () => {
         }
     }
 
+    const hasMetReserve = (params:GridValueGetterParams) => {
+        if (params.row.bid >= params.row.reserve) {
+            return "Yes"
+        } else {
+            return "No"
+        }
+    }
 
     const columns: GridColDef[] = [
         { field: 'id', headerName: 'ID', width: 90 },
         {
             field: 'image',
             headerName: 'Image',
-            width: 150,
+            type: 'string',
+            width: 200,
             editable: true,
             sortable: false,
             renderCell: (params) => <img
@@ -140,26 +150,38 @@ const AuctionsDataGrid = () => {
         {
             field: 'title',
             headerName: 'Title',
-            width: 280,
+            type: 'string',
+            width: 300,
             editable: true,
         },
         {
             field: 'closeDays',
             headerName: 'Days to close',
+            type:'number',
             width: 150,
             editable: true,
             valueGetter: daysBeforeClose
         },
         {
+            field: 'status',
+            headerName: 'Status',
+            type: 'string',
+            width: 150,
+            editable: true,
+            valueGetter: isClose
+        },
+        {
             field: 'category',
             headerName: 'Category',
-            width: 160,
+            type: 'string',
+            width: 200,
             editable: true,
             valueGetter: getCategoryName
         },
         {
             field: 'sellerName',
             headerName: 'Seller Name',
+            type: 'string',
             width: 150,
             editable: true,
             valueGetter: getFullName
@@ -168,7 +190,7 @@ const AuctionsDataGrid = () => {
             field: "bid",
             headerName: 'Bid',
             type: 'number',
-            width: 110,
+            width: 150,
             editable: true,
             valueGetter: getHighestBid
         },
@@ -176,10 +198,26 @@ const AuctionsDataGrid = () => {
             field: "reserve",
             headerName: 'Reserve',
             type: 'number',
-            width: 110,
+            width: 150,
             editable: true,
             valueGetter: getReserve
         },
+        {
+            field: "metReserve",
+            headerName: 'Met Reserve',
+            type: 'string',
+            width: 150,
+            editable: true,
+            valueGetter: hasMetReserve
+        },
+        {
+            field: "link",
+            headerName: 'Link to details',
+            type: 'string',
+            width: 150,
+            editable: true,
+            renderCell: (params) => (<a href={'http://localhost:8080/auctions/' + params.row.id}>Details</a>)
+        }
     ];
 
     const rows = auctions.map((auction) => {
@@ -198,6 +236,7 @@ const AuctionsDataGrid = () => {
         return (
             <GridToolbarContainer>
                 <GridToolbarQuickFilter />
+                <GridToolbarFilterButton />
             </GridToolbarContainer>
         )
     }
@@ -233,6 +272,16 @@ const AuctionsDataGrid = () => {
                             onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
                             rowsPerPageOptions={[5, 10]}
                             pagination
+                            initialState={{
+                                sorting: {
+                                    sortModel: [
+                                        {
+                                            field: 'closeDays',
+                                            sort: 'asc',
+                                        },
+                                    ],
+                                },
+                            }}
                         />
                     </div>
                 </div>

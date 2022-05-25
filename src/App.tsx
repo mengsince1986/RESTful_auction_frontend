@@ -17,6 +17,7 @@ function App() {
                         <Route path="/auctions" element={<AuctionsDataGrid/>}/>
                         <Route path="/auctions/:id" element={<Auction/>}/>
                         <Route path="/User/" element={<User/>}/>
+                        <Route path="/" element={<AuctionsDataGrid/>}/>
                         <Route path="*" element={<NotFound/>}/>
                     </Routes>
                 </div>

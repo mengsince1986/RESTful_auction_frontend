@@ -4,12 +4,14 @@ import {Delete, Edit} from "@mui/icons-material";
 //import {useUserStore} from "../store/";
 import {
     Alert, AlertTitle, Avatar,
+    Box,
     Button, Card, CardActions, CardContent, CardMedia, Dialog,
     DialogActions, DialogContent, DialogContentText,
     DialogTitle, Divider, IconButton, Paper, Snackbar, Stack, TextField, Typography
 } from "@mui/material";
 import CSS from 'csstype';
 import {useParams} from "react-router-dom";
+import { DataGrid, GridColDef, GridValueGetterParams} from "@mui/x-data-grid";
 
 
 const Auction = () => {
@@ -27,6 +29,7 @@ const Auction = () => {
         numBids: 0,
         highestBid: 0
     })
+    const [auctions, setAuctions] = React.useState<Array<Auction>>([])
     const [categories, setCategories] = React.useState<Array<Category>>([])
     const [auctionImageUrl, setAuctionImageUrl] = React.useState("")
     const [bids, setBids] = React.useState<Array<Bid>>([])
@@ -43,6 +46,19 @@ const Auction = () => {
                 }, (error) => {
                     setErrorFlag(true)
                     setErrorMessage(error.toString())
+                })
+        }
+
+        const getAuctions = () => {
+            axios.get('http://localhost:4941/api/v1/auctions')
+                .then((response) => {
+                    setErrorFlag(false)
+                    setErrorMessage("")
+                    setAuctions(response.data["auctions"])
+                }, (error) => {
+                    setErrorFlag(true)
+                    setErrorMessage(error.toString() +
+                        ": can't get auctions")
                 })
         }
 
@@ -72,6 +88,7 @@ const Auction = () => {
                 })
         }
         getAuction()
+        getAuctions()
         getCategories()
         getBids()
     }, [])
@@ -80,8 +97,10 @@ const Auction = () => {
         return 'http://localhost:4941/api/v1/auctions/' + id + '/image'
     }
 
-    const getUserImageUrl = (sellerId:number) => {
-        return 'http://localhost:4941/api/v1/users/' + sellerId + '/image'
+    const getUserImageUrl = (userId:number) => {
+        if (userId > 0) {
+            return 'http://localhost:4941/api/v1/users/' + userId + '/image'
+        }
     }
 
     const DaysBeforeClose = (strCloseDate: string) => {
@@ -164,63 +183,371 @@ const Auction = () => {
     const getCurrentBidBlock = () => {
         if (bids.length === 0) {
             return (
-                <div>
+                <CardContent>
                     <Divider/>
-                    <Typography variant="h6">
+                    <Typography>
+                        &nbsp;
+                    </Typography>
+                    <Typography variant="h6" style={{fontWeight: "bold"}}>
                         CURRENT BIDDER
                     </Typography>
                     <Typography variant="body1" color="text.secondary">
                         No bid placed
                     </Typography>
-                </div>
+                </CardContent>
             )
         }
         return (
-            <div>
-                <Divider />
-                <Typography variant="h6">
+            <CardContent>
+                <Divider/>
+                <Typography>
+                    &nbsp;
+                </Typography>
+                <Typography variant="h6" style={{fontWeight: "bold"}}>
                     CURRENT BIDDER
                 </Typography>
                 <Typography>
-                    <Avatar alt="seller"
+                    <Avatar alt="bidder"
                             sx={{width: 100, height: 100, margin: "auto"}}
                             src={getUserImageUrl(getCurrentBidderId())}/>
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
-                    First Name: {getCurrentBidderName()[0]}
+                <Typography>
+                    &nbsp;
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                    Last Name:  {getCurrentBidderName()[1]}
+                    <Box fontWeight='bold' display='inline'>
+                        First Name:</Box> {getCurrentBidderName()[0]}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                    Bid Amount:  {getCurrentBidAmount()}
+                    <Box fontWeight='bold' display='inline'>
+                        Last Name:</Box> {getCurrentBidderName()[1]}
                 </Typography>
-            </div>
+                <Typography variant="body1" color="text.secondary">
+                    <Box fontWeight='bold' display='inline'>
+                        Bid Amount:</Box> ${getCurrentBidAmount()}
+                </Typography>
+            </CardContent>
+        )
+    }
 
+    const getBidderList = () => {
+        const columns: GridColDef[] = [
+            {
+                field: 'avatar',
+                headerName: 'Avatar',
+                type: 'string',
+                width: 65,
+                editable: true,
+                sortable: false,
+                renderCell: (params) => <Avatar
+                    alt="bidder"
+                    sx={{width: 50, height: 50, margin: "auto"}}
+                    src={'http://localhost:4941/api/v1/users/' +
+                        params.row.bidderId + '/image'}/>
+            },
+            {
+                field: 'firstName',
+                headerName: 'First Name',
+                type: 'string',
+                width: 150,
+                editable: true,
+                sortable: false,
+            },
+            {
+                field: 'lastName',
+                headerName: 'Last Name',
+                type: 'string',
+                width: 150,
+                editable: true,
+                sortable: false,
+            },
+            {
+                field: "bidAmount",
+                headerName: 'Bid Amount',
+                type: 'string',
+                width: 150,
+                editable: true,
+                sortable: false,
+            },
+            {
+                field: "timeStamp",
+                headerName: 'Time Stamp',
+                type: 'string',
+                width: 300,
+                editable: true,
+                sortable: false,
+            },
+        ];
+
+        const rows =bids.map((bid) => {
+            return {
+                id: bid.timestamp,
+                bidderId: bid.bidderId,
+                firstName: bid.firstName,
+                lastName: bid.lastName,
+                bidAmount: `$${bid.amount}`,
+                timeStamp: bid.timestamp
+            }
+        })
+
+        return (
+            <CardContent>
+                <div style={{ height: 400, width: '100%' }}>
+                    <DataGrid
+                        rows={rows}
+                        columns={columns}
+                        pageSize={5}
+                        rowsPerPageOptions={[5]}
+                        disableSelectionOnClick
+                        disableColumnSelector
+                    />
+                </div>
+            </CardContent>
+        )
+    }
+
+    const getSimilarAuctions = (type: string) => {
+
+        const sameSellerAuctions = auctions.filter((candidate) => {
+            const haveSameSeller = candidate["sellerId"] === auction["sellerId"]
+            const isNotSelf = candidate["auctionId"] !== auction["auctionId"]
+            return isNotSelf && haveSameSeller
+        })
+
+        const sameCategoryAuctions = auctions.filter((candidate) => {
+            const haveSameCategory = candidate["categoryId"] === auction["categoryId"]
+            const isNotSelf = candidate["auctionId"] !== auction["auctionId"]
+            return isNotSelf && haveSameCategory
+        })
+
+        const daysBeforeClose = (params: GridValueGetterParams) => {
+            const closeDate = new Date(params.value);
+            const now = new Date();
+            const differ_in_time = closeDate.getTime() - now.getTime();
+            const differ_in_days = differ_in_time / (1000 * 3600 * 24);
+            return Math.floor(differ_in_days);
+        }
+
+        const isClose = (params: GridValueGetterParams) => {
+            const closeDate = new Date(params.row.closeDays);
+            const now = new Date();
+
+            const differ_in_time = closeDate.getTime() - now.getTime();
+            if (differ_in_time <= 0) {
+                return "close"
+            } else {
+                return "open"
+            }
+        }
+
+        const getCategoryName = (params: GridValueGetterParams) => {
+            const categoryLst = categories.filter((category) => {
+                return category["categoryId"] === params.value
+            })
+            if (categoryLst.length === 0) {
+                return "Not Specified"
+            } else {
+                return categoryLst[0]["name"]
+            }
+        }
+
+        const getFullName = (params: GridValueGetterParams) => {
+            return `${params.row.sellerFirstName || ''} ${params.row.sellerLastName || ''}`
+        }
+
+        const getHighestBid = (params: GridValueGetterParams) => {
+            if (params.value === null || params.value <= 0) {
+                return 0
+            } else {
+                return params.value
+            }
+        }
+
+        const getReserve = (params: GridValueGetterParams) => {
+            if (params.value === null || params.value <= 0) {
+                return 0
+            } else {
+                return params.value
+            }
+        }
+
+        const hasMetReserve = (params: GridValueGetterParams) => {
+            if (params.row.bid >= params.row.reserve) {
+                return "Yes"
+            } else {
+                return "No"
+            }
+        }
+
+        const columns: GridColDef[] = [
+            {
+                field: 'id',
+                headerName: 'ID',
+                type: 'number',
+                width: 100
+            },
+            {
+                field: "link",
+                headerName: 'Link',
+                type: 'string',
+                width: 100,
+                editable: true,
+                renderCell: (params) =>
+                    (<Button href={'http://localhost:8080/auctions/' + params.row.id}>
+                        Details
+                    </Button>)
+            },
+            {
+                field: 'image',
+                headerName: 'Image',
+                type: 'string',
+                width: 200,
+                editable: true,
+                sortable: false,
+                renderCell: (params) => <img
+                    src={'http://localhost:4941/api/v1/auctions/'
+                        + params.value + '/image'}
+                    alt="hero" width="100%"/>
+            },
+            {
+                field: 'title',
+                headerName: 'Title',
+                type: 'string',
+                width: 300,
+                editable: true,
+            },
+            {
+                field: 'closeDays',
+                headerName: 'Days to close',
+                type: 'number',
+                width: 150,
+                editable: true,
+                valueGetter: daysBeforeClose
+            },
+            {
+                field: 'status',
+                headerName: 'Status',
+                type: 'string',
+                width: 150,
+                editable: true,
+                valueGetter: isClose
+            },
+            {
+                field: 'category',
+                headerName: 'Category',
+                type: 'string',
+                width: 200,
+                editable: true,
+                valueGetter: getCategoryName
+            },
+            {
+                field: 'sellerName',
+                headerName: 'Seller Name',
+                type: 'string',
+                width: 150,
+                editable: true,
+                valueGetter: getFullName
+            },
+            {
+                field: "bid",
+                headerName: 'Bid',
+                type: 'number',
+                width: 150,
+                editable: true,
+                valueGetter: getHighestBid
+            },
+            {
+                field: "reserve",
+                headerName: 'Reserve',
+                type: 'number',
+                width: 150,
+                editable: true,
+                valueGetter: getReserve
+            },
+            {
+                field: "metReserve",
+                headerName: 'Met Reserve',
+                type: 'string',
+                width: 150,
+                editable: true,
+                valueGetter: hasMetReserve
+            },
+
+        ];
+
+        const sameCategoryRows = sameCategoryAuctions.map((auction:Auction) => {
+            return {
+                id: auction.auctionId,
+                image: auction.auctionId,
+                title: auction.title,
+                closeDays: auction.endDate,
+                category: auction.categoryId,
+                sellerFirstName: auction.sellerFirstName,
+                sellerLastName: auction.sellerLastName,
+                bid: auction.highestBid,
+                reserve: auction.reserve
+            }
+        })
+
+        const sameSellerRows = sameSellerAuctions.map((auction:Auction) => {
+            return {
+                id: auction.auctionId,
+                image: auction.auctionId,
+                title: auction.title,
+                closeDays: auction.endDate,
+                category: auction.categoryId,
+                sellerFirstName: auction.sellerFirstName,
+                sellerLastName: auction.sellerLastName,
+                bid: auction.highestBid,
+                reserve: auction.reserve
+            }
+        })
+
+        let rows;
+
+        if (type === "category") {
+            rows = sameCategoryRows
+        } else {
+            rows = sameSellerRows
+        }
+
+        return (
+            <CardContent>
+                <div style={{ height: 350, width: '100%' }}>
+                    <DataGrid
+                        rows={rows}
+                        columns={columns}
+                        pageSize={5}
+                        rowsPerPageOptions={[5]}
+                        disableSelectionOnClick
+                        disableColumnSelector
+                    />
+                </div>
+            </CardContent>
         )
     }
 
     const auctionCardStyles: CSS.Properties = {
         display: "inline-block",
-        height: "auto",
+        height: "580px",
         width: "500px",
         margin: "10px",
-        padding: "0px"
+        padding: "0px",
+
     }
 
     const paper: CSS.Properties = {
         padding: "10px",
         margin: "auto",
         display: "block",
-        width: "fit-content"
+        width: "fit-content",
     }
 
     return (
-        <Paper elevation={10} style={paper}>
-
+        <Paper elevation={10} style={paper} >
             <div style={{
-                display: "inline-block",
-                minWidth: "320"
+                display: "block",
+                minWidth: "320",
             }}>
                 {errorFlag ?
                     <Alert severity="error">
@@ -228,11 +555,15 @@ const Auction = () => {
                         {errorMessage}
                     </Alert>
                     : ""}
+                <h1>Auction Detail</h1>
                 <Card sx={auctionCardStyles}>
-                    <h1>Auction Detail</h1>
+
                     <CardContent>
-                        <Typography variant="h6">
+                        <Typography variant="h6" style={{fontWeight:"bold"}} >
                             ITEM
+                        </Typography>
+                        <Typography>
+                            &nbsp;
                         </Typography>
                         <CardMedia
                             component="img"
@@ -241,48 +572,124 @@ const Auction = () => {
                             image={getAuctionImageUrl()}
                             alt="Auction hero"
                         />
-                        <Typography variant="body1" color={"black"}>
-                           Title: {auction.title}
+                        <Typography>
+                            &nbsp;
                         </Typography>
-                        <Typography variant="body1" color={"text.secondary"}>
-                            Description: {auction.description}
+                        <Typography variant="body1" color="text.secondary" align="left">
+                            <Box fontWeight='bold' display='inline'>
+                                Title:</Box> {auction.title}
                         </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            Status: {DaysBeforeClose(auction.endDate)}
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            End Date: {strToDate(auction.endDate)}
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            Category: {getCategoryName(auction.categoryId)}
-                        </Typography>
-
-                        <Typography variant="body1" color="text.secondary">
-                            Number of bids: {auction.numBids}
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            Highest Bid: {getHighestBid(auction.highestBid)}
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            Reserve: {getReserve(auction.reserve)}
-                        </Typography>
-                        <Divider />
-                        <Typography variant="h6">
-                            SELLER
+                        <Typography variant="body1" color="text.secondary" align="left">
+                            <Box fontWeight='bold' display='inline'>
+                                Description:</Box> {auction.description}
                         </Typography>
                         <Typography>
-                            <Avatar alt="seller"
-                                    sx={{width: 100, height: 100, margin: "auto"}}
-                                    src={getUserImageUrl(auction["sellerId"])}/>
+                            &nbsp;
                         </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            First Name: {auction.sellerFirstName}
+                        <Typography variant="body1" color="text.secondary" align="left">
+                            <Box fontWeight='bold' display='inline'>
+                                Status:</Box> {DaysBeforeClose(auction.endDate)}
                         </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            Last Name: {auction.sellerLastName}
+                        <Typography variant="body1" color="text.secondary" align="left">
+                            <Box fontWeight='bold' display='inline'>
+                                End Date:</Box> {strToDate(auction.endDate)}
                         </Typography>
-                        {getCurrentBidBlock()}
+                        <Typography variant="body1" color="text.secondary" align="left">
+                            <Box fontWeight='bold' display='inline'>
+                                Category:</Box> {getCategoryName(auction.categoryId)}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" align="left">
+                            <Box fontWeight='bold' display='inline'>
+                                Number of bids:</Box> {auction.numBids}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" align="left">
+                            <Box fontWeight='bold' display='inline'>
+                                Highest Bid:</Box> {getHighestBid(auction.highestBid)}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" align="left">
+                            <Box fontWeight='bold' display='inline'>
+                                Reserve:</Box> {getReserve(auction.reserve)}
+                        </Typography>
                     </CardContent>
+                </Card>
+                <Card sx={auctionCardStyles}>
+                    <Typography>
+                        &nbsp;
+                    </Typography>
+                    <Typography variant="h6"  style={{fontWeight:"bold"}}>
+                        SELLER
+                    </Typography>
+                    <Typography>
+                        <Avatar alt="seller"
+                                sx={{width: 100, height: 100, margin: "auto"}}
+                                src={getUserImageUrl(auction["sellerId"])}/>
+                    </Typography>
+                    <Typography>
+                        &nbsp;
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                        <Box fontWeight='bold' display='inline'>
+                            First Name:</Box> {auction.sellerFirstName}
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                        <Box fontWeight='bold' display='inline'>
+                            Last Name:</Box> {auction.sellerLastName}
+                    </Typography>
+                    <Typography>
+                        &nbsp;
+                    </Typography>
+                    {getCurrentBidBlock()}
+                </Card>
+
+                <Card sx={{
+                    display: "inline-block",
+                    height: "auto",
+                    minHeight: "580px",
+                    width: "1020px",
+                    margin: "10px",
+                    padding: "0px",
+                }}>
+                    <Typography>
+                        &nbsp;
+                    </Typography>
+                    <Typography variant="h6"  style={{fontWeight:"bold"}}>
+                        BIDDER LIST
+                    </Typography>
+                    {getBidderList()}
+                </Card>
+
+                <Card sx={{
+                    display: "inline-block",
+                    height: "auto",
+                    minHeight: "450px",
+                    width: "1020px",
+                    margin: "10px",
+                    padding: "0px",
+                }}>
+                    <Typography>
+                        &nbsp;
+                    </Typography>
+                    <Typography variant="h6"  style={{fontWeight:"bold"}}>
+                        Auctions from the Same Category
+                    </Typography>
+                    {getSimilarAuctions("category")}
+                </Card>
+
+                <Card sx={{
+                    display: "inline-block",
+                    height: "auto",
+                    minHeight: "450px",
+                    width: "1020px",
+                    margin: "10px",
+                    padding: "0px",
+                }}>
+                    <Typography>
+                        &nbsp;
+                    </Typography>
+                    <Typography variant="h6"  style={{fontWeight:"bold"}}>
+                        Auctions from the Same Seller
+                    </Typography>
+                    {getSimilarAuctions("seller")}
                 </Card>
             </div>
         </Paper>

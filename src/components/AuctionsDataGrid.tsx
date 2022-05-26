@@ -147,7 +147,10 @@ const AuctionsDataGrid = () => {
             type: 'string',
             width: 100,
             editable: true,
-            renderCell: (params) => (<a href={'http://localhost:8080/auctions/' + params.row.id}>Details</a>)
+            renderCell: (params) =>
+            (<Button href={'http://localhost:8080/auctions/' + params.row.id}>
+                Details
+            </Button>)
         },
         {
             field: 'image',
@@ -275,6 +278,7 @@ const AuctionsDataGrid = () => {
                             autoHeight
                             rowHeight={120}
                             disableColumnSelector
+                            disableSelectionOnClick
                             rows={rows}
                             columns={columns}
                             components={{Toolbar: tableToolBar}}

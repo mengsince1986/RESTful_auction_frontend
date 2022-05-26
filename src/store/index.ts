@@ -1,17 +1,24 @@
 import create from 'zustand';
 
-interface UserState {
-    login: boolean;
+
+const getLocalStorage = (key: string)  => JSON.parse(window.localStorage.getItem(key) as string);
+const setLocalStorage = (key: string, value: string) => window.localStorage.setItem(key, JSON.stringify(value));
+
+
+interface TokenState {
     userToken: string;
+    setUserToken: (userToken: string) => void;
 }
 
-export const useStore = create<UserState>((set) => ({
-    login: false,
-    userToken: "",
-    setLogin: () => set((state) => {
-        return {login: !state}
-    }),
+
+const useStore = create<TokenState>((set) => ({
+    userToken: getLocalStorage('userToken') || "",
+
     setUserToken: (userToken: string) => set(() => {
+        setLocalStorage('userToken', userToken)
         return {userToken: userToken}
-    })
+    }),
+
 }))
+
+export const useTokenStore = useStore;

@@ -32,13 +32,11 @@ const SignUp = () => {
         })
             .then(function (response) {
                 console.log(response);
-                navigate('/auctions')
+                navigate('/signin')
             })
             .catch(function (error) {
                 console.log(error);
             });
-
-
     };
 
     return (
@@ -56,7 +54,7 @@ const SignUp = () => {
                     <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
                         <LockOutlinedIcon />
                     </Avatar>
-                    <Typography component="h1" variant="h5">
+                    <Typography component="h1" variant="h5" color="secondary.main">
                         Sign up
                     </Typography>
                     <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
@@ -114,7 +112,8 @@ const SignUp = () => {
                         </Button>
                         <Grid container justifyContent="flex-end">
                             <Grid item>
-                                <Link href="#" variant="body2">
+                                <Link href="http://localhost:8080/signin"
+                                      variant="body2">
                                     Already have an account? Sign in
                                 </Link>
                             </Grid>

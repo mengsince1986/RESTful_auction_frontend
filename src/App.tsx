@@ -6,6 +6,7 @@ import Auction from "./components/Auction";
 import User from "./components/User";
 import AuctionsDataGrid from "./components/AuctionsDataGrid";
 import SignUp from "./components/SignUp";
+import SignIn from "./components/SignIn";
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
                         <Route path="/auctions" element={<AuctionsDataGrid/>}/>
                         <Route path="/auctions/:id" element={<Auction/>}/>
                         <Route path="/signup/" element={<SignUp/>}/>
+                        <Route path="/signin/" element={<SignIn/>}/>
                         <Route path="/user/" element={<User/>}/>
                         <Route path="/" element={<AuctionsDataGrid/>}/>
                         <Route path="*" element={<NotFound/>}/>

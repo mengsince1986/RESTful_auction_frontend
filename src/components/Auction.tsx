@@ -86,7 +86,7 @@ const Auction = () => {
         getAuctions()
         getCategories()
         getBids()
-    }, [])
+    }, [id])
 
     const getAuctionImageUrl = () => {
         return 'http://localhost:4941/api/v1/auctions/' + id + '/image'

@@ -6,21 +6,52 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
-import { useStore } from '../store';
+import { useTokenStore } from "../store";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const SimpleAppBar = () => {
+    const [errorFlag, setErrorFlag] = React.useState(false);
+    const [errorMessage, setErrorMessage] = React.useState("");
+    const userToken = useTokenStore(state => state.userToken);
+    const setUserToken = useTokenStore(state => state.setUserToken);
+    const navigate = useNavigate();
 
-    const loginState = useStore(state => state.login)
+    const logoutUser = () => {
+        console.log("logout token:");
+        console.log(userToken);
+        setUserToken("");
+        const config = {
+            headers: {
+                "X-Authorization": userToken,
+            }
+        };
+        const data = {};
+        axios.post('http://localhost:4941/api/v1/users/logout',data, config)
+            .then((response) => {
+                setErrorFlag(false);
+                setErrorMessage("");
+                navigate('/auctions')
+            }, (error) => {
+                setErrorFlag(true)
+                setErrorMessage(error.toString() +
+                    ": can't log out")
+            })
+    }
 
-    const loginOrSignupButton = () => {
-        if (loginState) {
+
+    const LoginOrSignupButton = () => {
+
+        if (userToken !== "") {
             return (
-                <Button color="inherit">LogOut</Button>
+                <Button color="inherit" onClick={logoutUser}>LogOut</Button>
             )
         } else {
             return (
                 <div>
-                    <Button color="inherit">Login</Button>
+                    <Button color="inherit"
+                            href="http://localhost:8080/signin/">
+                        Login</Button>
                     <Button color="inherit"
                             href="http://localhost:8080/signup/">
                         SignUp
@@ -50,7 +81,7 @@ const SimpleAppBar = () => {
                     <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
                       COSC365 mzh103
                     </Typography>
-                    {loginOrSignupButton()}
+                    {LoginOrSignupButton()}
                 </Toolbar>
             </AppBar>
         </Box>

@@ -2,10 +2,8 @@ import React from 'react';
 import './App.css';
 import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
 import NotFound from "./components/NotFound";
-import AuctionList from "./components/AuctionList";
 import Auction from "./components/Auction";
 import User from "./components/User";
-import AuctionsTable from "./components/AuctionsTable";
 import AuctionsDataGrid from "./components/AuctionsDataGrid";
 
 function App() {

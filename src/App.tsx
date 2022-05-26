@@ -5,6 +5,7 @@ import NotFound from "./components/NotFound";
 import Auction from "./components/Auction";
 import User from "./components/User";
 import AuctionsDataGrid from "./components/AuctionsDataGrid";
+import SignUp from "./components/SignUp";
 
 function App() {
     return (
@@ -14,7 +15,8 @@ function App() {
                     <Routes>
                         <Route path="/auctions" element={<AuctionsDataGrid/>}/>
                         <Route path="/auctions/:id" element={<Auction/>}/>
-                        <Route path="/User/" element={<User/>}/>
+                        <Route path="/signup/" element={<SignUp/>}/>
+                        <Route path="/user/" element={<User/>}/>
                         <Route path="/" element={<AuctionsDataGrid/>}/>
                         <Route path="*" element={<NotFound/>}/>
                     </Routes>

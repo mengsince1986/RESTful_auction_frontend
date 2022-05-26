@@ -1,17 +1,13 @@
 import React from "react";
 import axios from "axios";
-import {Delete, Edit} from "@mui/icons-material";
-//import {useUserStore} from "../store/";
 import {
-    Alert, AlertTitle, Avatar,
-    Box,
-    Button, Card, CardActions, CardContent, CardMedia, Dialog,
-    DialogActions, DialogContent, DialogContentText,
-    DialogTitle, Divider, IconButton, Paper, Snackbar, Stack, TextField, Typography
+    Alert, AlertTitle, Avatar, Box, Button, Card,  CardContent, CardMedia,
+    Divider, Paper, Typography
 } from "@mui/material";
 import CSS from 'csstype';
 import {useParams} from "react-router-dom";
 import { DataGrid, GridColDef, GridValueGetterParams} from "@mui/x-data-grid";
+import SimpleAppBar from "./AppBar";
 
 
 const Auction = () => {
@@ -31,7 +27,6 @@ const Auction = () => {
     })
     const [auctions, setAuctions] = React.useState<Array<Auction>>([])
     const [categories, setCategories] = React.useState<Array<Category>>([])
-    const [auctionImageUrl, setAuctionImageUrl] = React.useState("")
     const [bids, setBids] = React.useState<Array<Bid>>([])
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
@@ -545,6 +540,7 @@ const Auction = () => {
 
     return (
         <Paper elevation={10} style={paper} >
+            {SimpleAppBar()}
             <div style={{
                 display: "block",
                 minWidth: "320",

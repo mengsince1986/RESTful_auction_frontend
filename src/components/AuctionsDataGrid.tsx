@@ -1,27 +1,16 @@
 import axios from 'axios';
-import React, {useId} from "react";
-import {Link, useNavigate} from "react-router-dom";
-import EditIcon from "@mui/icons-material/Edit";
-import {
-    Button, Dialog, DialogActions, DialogContent,
-    DialogContentText, DialogTitle, TextField, Paper, Table, TableBody,
-    TableContainer, TableRow, TableCell, TableHead, Stack, AlertTitle, Alert, Snackbar, CardMedia, Card, createTheme
-} from "@mui/material";
-import TablePagination from '@mui/material/TablePagination';
-import DeleteIcon from "@mui/icons-material/Delete";
+import React from "react";
+import {Button, AlertTitle, Alert} from "@mui/material";
 import {
     DataGrid,
     GridColDef,
     GridValueGetterParams,
-    GridToolbar,
-    GridToolbarExport,
-    GridToolbarContainer, GridToolbarQuickFilter, GridToolbarFilterButton, GridToolbarColumnsButton
+    GridToolbarContainer, GridToolbarQuickFilter, GridToolbarFilterButton,
 } from "@mui/x-data-grid";
-import CSS from 'csstype';
-// When using TypeScript 4.x and above
-import type {} from '@mui/x-data-grid/themeAugmentation';
-import Box from "@mui/material/Box";
+import SimpleAppBar from "./AppBar";
+// import type {} from '@mui/x-data-grid/themeAugmentation'; // When using TypeScript 4.x and above
 
+/*
 const theme = createTheme({
     components: {
         // Use `MuiDataGrid` on DataGrid, DataGridPro and DataGridPremium
@@ -34,6 +23,7 @@ const theme = createTheme({
         },
     },
 });
+*/
 
 const AuctionsDataGrid = () => {
     const [auctions, setAuctions] = React.useState<Array<Auction>>([])
@@ -253,11 +243,13 @@ const AuctionsDataGrid = () => {
         )
     }
 
+/*
     const card: CSS.Properties = {
         padding: "10px",
         margin: "50px",
         height: "600px",
     }
+*/
 
     if (errorFlag) {
         return (
@@ -271,6 +263,7 @@ const AuctionsDataGrid = () => {
     } else {
         return (
             <div style={{height: 400, width: '100%'}}>
+                {SimpleAppBar()}
                 <div style={{display: 'flex', height: '100%'}}>
                     <div style={{flexGrow: 1, margin: "auto", maxWidth: 1900}}>
                         <h1>Auction List</h1>

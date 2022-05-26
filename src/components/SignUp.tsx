@@ -3,8 +3,6 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -14,33 +12,73 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import {Alert, Snackbar} from "@mui/material";
+import { useTokenStore } from "../store";
+import SimpleAppBar from "./AppBar";
 
 const theme = createTheme();
 
 const SignUp = () => {
     const navigate = useNavigate();
+    const [open, setOpen] = React.useState(false);
+    const [error, setError] = React.useState("")
+    const setUserToken = useTokenStore(state => state.setUserToken);
+
+    const handleClick = () => {
+        setOpen(true);
+    };
+
+    const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setOpen(false);
+    };
+
+    const isValidPassword = (password: FormDataEntryValue | null) => {
+        return (password !== null) && (String(password).length >= 6)
+    };
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
-
-        axios.post('http://localhost:4941/api/v1/users/register', {
-            firstName: data.get('firstName'),
-            lastName: data.get('lastName'),
-            email: data.get('email'),
-            password: data.get('password'),
-        })
-            .then(function (response) {
-                console.log(response);
-                navigate('/signin')
+        if (isValidPassword(data.get('password'))) {
+            axios.post('http://localhost:4941/api/v1/users/register', {
+                firstName: data.get('firstName'),
+                lastName: data.get('lastName'),
+                email: data.get('email'),
+                password: data.get('password'),
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then(function (response) {
+                    axios.post('http://localhost:4941/api/v1/users/login', {
+                        email: data.get('email'),
+                        password: data.get('password'),
+                    })
+                        .then(function (response) {
+                            console.log(response);
+                            setUserToken(response.data["token"]);
+                            navigate('/auctions');
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                })
+                .catch(function (error) {
+                    console.log(error.response.statusText);
+                    setError(error.response.statusText);
+                    setOpen(true);
+                });
+        } else {
+            setError("Error: Password must be at least 6 characters");
+            setOpen(true);
+        }
+
     };
 
     return (
         <ThemeProvider theme={theme}>
+            {SimpleAppBar()}
             <Container component="main" maxWidth="xs">
                 <CssBaseline />
                 <Box
@@ -110,6 +148,11 @@ const SignUp = () => {
                         >
                             Sign Up
                         </Button>
+                        <Snackbar open={open} autoHideDuration={10000} onClose={handleClose}>
+                            <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+                                {error}
+                            </Alert>
+                        </Snackbar>
                         <Grid container justifyContent="flex-end">
                             <Grid item>
                                 <Link href="http://localhost:8080/signin"

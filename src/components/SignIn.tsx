@@ -3,8 +3,6 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -15,12 +13,29 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useTokenStore } from "../store";
+import SimpleAppBar from "./AppBar";
+import {Alert, Snackbar} from "@mui/material";
 
 const theme = createTheme();
 
 const SignIn = () =>  {
     const navigate = useNavigate();
     const setUserToken = useTokenStore(state => state.setUserToken);
+    const [open, setOpen] = React.useState(false);
+    const [error, setError] = React.useState("")
+
+    const handleClick = () => {
+        setOpen(true);
+    };
+
+    const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setOpen(false);
+    };
+
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -35,12 +50,14 @@ const SignIn = () =>  {
                 navigate('/auctions');
             })
             .catch(function (error) {
-                console.log(error);
+                setError(error.response.statusText);
+                setOpen(true);
             });
     };
 
     return (
         <ThemeProvider theme={theme}>
+            {SimpleAppBar()}
             <Container component="main" maxWidth="xs">
                 <CssBaseline />
                 <Box
@@ -86,6 +103,11 @@ const SignIn = () =>  {
                         >
                             Sign In
                         </Button>
+                        <Snackbar open={open} autoHideDuration={10000} onClose={handleClose}>
+                            <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+                                {error}
+                            </Alert>
+                        </Snackbar>
                         <Grid container>
                             <Grid item>
                                 <Link href="http://localhost:8080/signup"

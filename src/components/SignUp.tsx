@@ -32,7 +32,6 @@ const SignUp = () => {
         if (reason === 'clickaway') {
             return;
         }
-
         setOpen(false);
     };
 
@@ -65,13 +64,13 @@ const SignUp = () => {
                         });
                 })
                 .catch(function (error) {
-                    console.log(error.response.statusText);
                     setError(error.response.statusText);
-                    setOpen(true);
+                    handleClick();
                 });
         } else {
             setError("Error: Password must be at least 6 characters");
-            setOpen(true);
+            //setOpen(true);
+            handleClick();
         }
 
     };
@@ -95,7 +94,7 @@ const SignUp = () => {
                     <Typography component="h1" variant="h5" color="secondary.main">
                         Sign up
                     </Typography>
-                    <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+                    <Box component="form" noValidate  onSubmit={handleSubmit} sx={{ mt: 3 }}>
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6}>
                                 <TextField

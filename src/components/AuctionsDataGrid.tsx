@@ -1,6 +1,16 @@
 import axios from 'axios';
 import React from "react";
-import {Button, AlertTitle, Alert, Avatar} from "@mui/material";
+import {
+    Button,
+    AlertTitle,
+    Alert,
+    Avatar,
+    Dialog,
+    DialogTitle,
+    DialogContentText,
+    DialogContent,
+    DialogActions
+} from "@mui/material";
 import {
     DataGrid,
     GridColDef,
@@ -8,6 +18,8 @@ import {
     GridToolbarContainer, GridToolbarQuickFilter, GridToolbarFilterButton,
 } from "@mui/x-data-grid";
 import SimpleAppBar from "./AppBar";
+import {useTokenStore, useUserIdStore} from "../store";
+import {useNavigate} from "react-router-dom";
 // import type {} from '@mui/x-data-grid/themeAugmentation'; // When using TypeScript 4.x and above
 
 /*
@@ -26,11 +38,16 @@ const theme = createTheme({
 */
 
 const AuctionsDataGrid = () => {
-    const [auctions, setAuctions] = React.useState<Array<Auction>>([])
-    const [categories, setCategories] = React.useState<Array<Category>>([])
-    const [errorFlag, setErrorFlag] = React.useState(false)
-    const [errorMessage, setErrorMessage] = React.useState("")
+    const [auctions, setAuctions] = React.useState<Array<Auction>>([]);
+    const [categories, setCategories] = React.useState<Array<Category>>([]);
+    const userId = useUserIdStore(state => state.userId);
+    const userToken = useTokenStore(state => state.userToken);
+    const [errorFlag, setErrorFlag] = React.useState(false);
+    const [errorMessage, setErrorMessage] = React.useState("");
     const [pageSize, setPageSize] = React.useState<number>(5);
+    const navigate = useNavigate();
+    const [open, setOpen] = React.useState(false);
+    const [auctionId, setAuctionId] = React.useState(0);
 
 
     // useEffect
@@ -64,6 +81,31 @@ const AuctionsDataGrid = () => {
         getCategories()
     }, [])
 
+
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const deleteAuction = () => {
+        const config = {
+            headers: {
+                "X-Authorization": userToken,
+            }
+        };
+        axios.delete('http://localhost:4941/api/v1/auctions/' + auctionId,
+            config)
+            .then((response) => {
+                console.log(response)
+                navigate('/auctions')
+            }, (error) => {
+                setErrorFlag(true)
+                setErrorMessage(error.toString())
+            })
+    }
 
     const daysBeforeClose = (params: GridValueGetterParams) => {
         const closeDate = new Date(params.value);
@@ -124,6 +166,7 @@ const AuctionsDataGrid = () => {
         }
     }
 
+
     const columns: GridColDef[] = [
         {
             field: 'id',
@@ -133,13 +176,12 @@ const AuctionsDataGrid = () => {
         },
         {
             field: "link",
-            headerName: 'Link',
+            headerName: 'Details',
             type: 'string',
             width: 100,
             editable: true,
-            renderCell: (params) =>
-            (<Button href={'http://localhost:8080/auctions/' + params.row.id}>
-                Details
+            renderCell: (params) =>   (<Button href={'http://localhost:8080/auctions/' + params.row.id}>
+                More
             </Button>)
         },
         {
@@ -226,6 +268,7 @@ const AuctionsDataGrid = () => {
             title: auction.title,
             closeDays: auction.endDate,
             category: auction.categoryId,
+            sellerId: auction.sellerId,
             sellerFirstName: auction.sellerFirstName,
             sellerLastName: auction.sellerLastName,
             bid: auction.highestBid,
@@ -267,6 +310,7 @@ const AuctionsDataGrid = () => {
                     <div style={{flexGrow: 1, margin: "auto", maxWidth: 1900}}>
                         <h1>Auction List</h1>
                         <DataGrid
+                            isCellEditable={(params) => false}
                             autoHeight
                             rowHeight={120}
                             disableColumnSelector

@@ -10,6 +10,7 @@ import SignIn from "./components/SignIn";
 import CreateAuction from "./components/CreateAuction";
 import MyAuctions from "./components/MyAuctions";
 import EditAuction from "./components/EditAuction";
+import BidAuction from "./components/BidAuction";
 
 function App() {
     return (
@@ -21,6 +22,7 @@ function App() {
                         <Route path="/auctions/:id" element={<Auction/>}/>
                         <Route path="/auctions/create" element={<CreateAuction/>}/>
                         <Route path="/auctions/:id/edit" element={<EditAuction/>}/>
+                        <Route path="/auctions/:id/bid" element={<BidAuction/>}/>
                         <Route path="/auctions/my" element={<MyAuctions/>}/>
                         <Route path="/signup/" element={<SignUp/>}/>
                         <Route path="/signin/" element={<SignIn/>}/>

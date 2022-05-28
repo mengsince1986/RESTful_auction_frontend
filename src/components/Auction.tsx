@@ -1,13 +1,27 @@
 import React from "react";
 import axios from "axios";
 import {
-    Alert, AlertTitle, Avatar, Box, Button, Card,  CardContent, CardMedia,
-    Divider, Paper, Typography
+    Alert,
+    AlertTitle,
+    Avatar,
+    Box,
+    Button,
+    Card,
+    CardContent,
+    CardMedia,
+    Dialog, DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Divider,
+    Paper, Stack,
+    Typography
 } from "@mui/material";
 import CSS from 'csstype';
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import { DataGrid, GridColDef, GridValueGetterParams} from "@mui/x-data-grid";
 import SimpleAppBar from "./AppBar";
+import {useTokenStore, useUserIdStore} from "../store";
 
 
 const Auction = () => {
@@ -30,6 +44,12 @@ const Auction = () => {
     const [bids, setBids] = React.useState<Array<Bid>>([])
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
+    const navigate = useNavigate();
+    const [open, setOpen] = React.useState(false);
+    const [auctionId, setAuctionId] = React.useState(0);
+    const userToken = useTokenStore(state => state.userToken);
+    const userId = useUserIdStore(state => state.userId);
+
 
     React.useEffect(() => {
         const getAuction = () => {
@@ -86,7 +106,119 @@ const Auction = () => {
         getAuctions()
         getCategories()
         getBids()
-    }, [id])
+    }, [])
+
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const deleteAuction = () => {
+        const config = {
+            headers: {
+                "X-Authorization": userToken,
+            }
+        };
+        axios.delete('http://localhost:4941/api/v1/auctions/' + id,
+            config)
+            .then((response) => {
+                console.log(response)
+                navigate('/auctions')
+            }, (error) => {
+                setErrorFlag(true)
+                setErrorMessage(error.response.statusText.toString())
+            })
+    }
+
+    const getButtons = () => {
+        {
+            const option1 = (
+                <div>
+                    <Stack  direction="row" spacing={2}>
+                    <Button href={'http://localhost:8080/auctions/' + auction.auctionId + '/edit'}
+                            variant="contained"
+                            disabled>
+                        Edit
+                    </Button>
+                    <Button variant="contained" disabled>
+                        Delete
+                    </Button>
+                    <Button href={'http://localhost:8080/auctions/' + auction.auctionId + '/bid'}
+                            variant="contained">
+                        Bid!
+                    </Button>
+                    </Stack>
+                </div>
+            )
+            const option2 = (
+                <div>
+                    <Stack  direction="row" spacing={2}>
+                    <Button href={'http://localhost:8080/auctions/' + auction.auctionId + '/edit'}
+                    variant="contained">
+                        Edit
+                    </Button>
+                    <Button onClick={handleClickOpen} variant="contained">
+                        Delete
+                    </Button>
+                    <Dialog
+                        open={open}
+                        onClose={handleClose}
+                        aria-labelledby="alert-dialog-title"
+                        aria-describedby="alert-dialog-description"
+                    >
+                        <DialogTitle id="alert-dialog-title">
+                            {"Warning"}
+                        </DialogTitle>
+                        <DialogContent>
+                            <DialogContentText id="alert-dialog-description">
+                                Are you sure you want to delete the auction?
+                            </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClose}>No</Button>
+                            <Button onClick={deleteAuction} autoFocus>
+                                Yes
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+                    <Button href={'http://localhost:8080/auctions/' + auction.auctionId + '/bid'}
+                            variant="contained" disabled>
+                        Bid!
+                    </Button>
+                    </Stack>
+                </div>
+            )
+
+            if (userToken !== "" && userId === auction.sellerId) {
+                return option2
+            } else if (userToken !== "" && userId !== auction.sellerId
+            && Date.parse(auction.endDate) > Date.now()) {
+                return option1
+            } else {
+                return (
+                    <div>
+                        <Stack  direction="row" spacing={2}>
+                            <Button href={'http://localhost:8080/auctions/' + auction.auctionId + '/edit'}
+                                    variant="contained"
+                                    disabled>
+                                Edit
+                            </Button>
+                            <Button variant="contained" disabled>
+                                Delete
+                            </Button>
+                            <Button href={'http://localhost:8080/auctions/' + auction.auctionId + '/bid'}
+                                    variant="contained" disabled>
+                                Bid!
+                            </Button>
+                        </Stack>
+                    </div>
+                )
+            }
+        }
+    }
 
     const getAuctionImageUrl = () => {
         return 'http://localhost:4941/api/v1/auctions/' + id + '/image'
@@ -399,10 +531,9 @@ const Auction = () => {
                 width: 200,
                 editable: true,
                 sortable: false,
-                renderCell: (params) => <img
-                    src={'http://localhost:4941/api/v1/auctions/'
-                        + params.value + '/image'}
-                    alt="hero" width="100%"/>
+                renderCell: (params) => <Avatar
+                    alt="auction" variant="square"
+                    sx={{width: 110, height: 110, margin: "auto"}} src={'http://localhost:4941/api/v1/auctions/' + params.value + '/image'}/>
             },
             {
                 field: 'title',
@@ -512,6 +643,9 @@ const Auction = () => {
                     <DataGrid
                         rows={rows}
                         columns={columns}
+                        isCellEditable={(params) => false}
+                        autoHeight
+                        rowHeight={120}
                         pageSize={5}
                         rowsPerPageOptions={[5]}
                         disableSelectionOnClick
@@ -524,7 +658,7 @@ const Auction = () => {
 
     const auctionCardStyles: CSS.Properties = {
         display: "inline-block",
-        height: "580px",
+        height: "650px",
         width: "500px",
         margin: "10px",
         padding: "0px",
@@ -546,8 +680,7 @@ const Auction = () => {
                 minWidth: "320",
             }}>
                 {errorFlag ?
-                    <Alert severity="error">
-                        <AlertTitle>Error</AlertTitle>
+                    <Alert variant="filled" severity="error">
                         {errorMessage}
                     </Alert>
                     : ""}
@@ -568,6 +701,7 @@ const Auction = () => {
                             image={getAuctionImageUrl()}
                             alt="Auction hero"
                         />
+
                         <Typography>
                             &nbsp;
                         </Typography>
@@ -606,7 +740,12 @@ const Auction = () => {
                             <Box fontWeight='bold' display='inline'>
                                 Reserve:</Box> {getReserve(auction.reserve)}
                         </Typography>
+                        <Typography>
+                            &nbsp;
+                        </Typography>
+                        {getButtons()}
                     </CardContent>
+
                 </Card>
                 <Card sx={auctionCardStyles}>
                     <Typography>

@@ -184,7 +184,7 @@ const EditAuction = () => {
                 })
                 .catch(function (error) {
                     console.log(error);
-                    setErrorMessage("Can't modify the auction")
+                    setErrorMessage(error.response.statusText)
                     handleClick()
                 });
         } else {

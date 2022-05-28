@@ -169,12 +169,37 @@ const MyAuctionsDataGrid = () => {
                 field: "link",
                 headerName: 'Link',
                 type: 'string',
-                width: 100,
+                width: 140,
                 editable: true,
-                renderCell: (params) =>
-                    (<Button href={'http://localhost:8080/auctions/' + params.row.id}>
-                        Details
-                    </Button>)
+                renderCell: (params) => {
+                    const option1 = (
+                        <div>
+                        <Button href={'http://localhost:8080/auctions/' + params.row.id}>
+                            Details
+                        </Button>
+                        <Button href={'http://localhost:8080/auctions/' + params.row.id + '/edit'}
+                                disabled>
+                            Edit
+                        </Button>
+                        </div>
+                    )
+                    const option2 = (
+                        <div>
+                        <Button href={'http://localhost:8080/auctions/' + params.row.id}>
+                            Details
+                        </Button>
+                        <Button href={'http://localhost:8080/auctions/' + params.row.id + '/edit'}>
+                            Edit
+                        </Button>
+                        </div>
+                    )
+
+                    if (userToken !== "" && userId === params.row.sellerId) {
+                        return option2
+                    } else {
+                        return option1
+                    }
+                }
             },
             {
                 field: 'image',
@@ -267,6 +292,7 @@ const MyAuctionsDataGrid = () => {
                     title: auction.title,
                     closeDays: auction.endDate,
                     category: auction.categoryId,
+                    sellerId: auction.sellerId,
                     sellerFirstName: auction.sellerFirstName,
                     sellerLastName: auction.sellerLastName,
                     bid: auction.highestBid,
@@ -281,6 +307,7 @@ const MyAuctionsDataGrid = () => {
                     title: auction.title,
                     closeDays: auction.endDate,
                     category: auction.categoryId,
+                    sellerId: auction.sellerId,
                     sellerFirstName: auction.sellerFirstName,
                     sellerLastName: auction.sellerLastName,
                     bid: auction.highestBid,

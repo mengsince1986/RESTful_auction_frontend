@@ -50,10 +50,7 @@ const SignIn = () =>  {
                 console.log(response);
                 setUserToken(response.data["token"]);
                 const newUserId = response.data["userId"]
-                console.log(typeof newUserId)
-                console.log(newUserId)
                 setUserId(newUserId)
-                console.log("global userID: " + userId)
                 navigate('/auctions');
             })
             .catch(function (error) {

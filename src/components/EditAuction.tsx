@@ -13,12 +13,27 @@ import {Alert, FormControl, Input, InputLabel, MenuItem, Select, SelectChangeEve
 import axios from "axios";
 import {useTokenStore} from "../store";
 import SimpleAppBar from "./AppBar";
+import {useParams} from "react-router-dom";
 
 const theme = createTheme();
 
-const CreateAuction = () => {
+const EditAuction = () => {
+    const {id} = useParams();
     const [categories, setCategories] = React.useState<Array<Category>>([])
     const [category, setCategory] = React.useState('');
+    const [auction, setAuction] = React.useState<AuctionDetail>({
+        auctionId: 0,
+        title: "",
+        description: "",
+        endDate: "",
+        categoryId: 0,
+        reserve: 0,
+        sellerId: 0,
+        sellerFirstName: "",
+        sellerLastName: "",
+        numBids: 0,
+        highestBid: 0
+    })
     const userToken = useTokenStore(state => state.userToken);
     const [selectedFile, setSelectedFile] = React.useState(null);
     const [errorFlag, setErrorFlag] = React.useState(false)
@@ -26,6 +41,18 @@ const CreateAuction = () => {
     const [open, setOpen] = React.useState(false);
 
     React.useEffect(() => {
+        const getAuction = () => {
+            axios.get('http://localhost:4941/api/v1/auctions/' + id)
+                .then((response) => {
+                    setErrorFlag(false)
+                    setErrorMessage("")
+                    setAuction(response.data)
+                }, (error) => {
+                    setErrorFlag(true)
+                    setErrorMessage(error.toString())
+                })
+        }
+
         const getCategories = () => {
             axios.get('http://localhost:4941/api/v1/auctions/categories')
                 .then((response) => {
@@ -40,6 +67,7 @@ const CreateAuction = () => {
                 })
         }
         getCategories()
+        getAuction()
     }, [])
 
     const handleClick = () => {
@@ -56,12 +84,13 @@ const CreateAuction = () => {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
-        console.log(data.get("auctionImage"))
         const config = {
             headers: {
                 "X-Authorization": userToken,
             }
         };
+
+
         const auctionData = {
             title: data.get('title'),
             description: data.get('description'),
@@ -70,20 +99,42 @@ const CreateAuction = () => {
             endDate: data.get('endDate')
         };
 
+        if (data.get('title') === '') {
+            // @ts-ignore
+            delete auctionData.title;
+        }
+
+        if (data.get('description') === '') {
+            // @ts-ignore
+            delete auctionData.description;
+        }
+
+        if (Number(data.get('reserve')) === 0) {
+            // @ts-ignore
+            delete auctionData.reserve;
+        }
+
+        if (category === "") {
+            // @ts-ignore
+            delete auctionData.categoryId;
+        }
+
+        if (data.get('endDate') === '') {
+            // @ts-ignore
+            delete auctionData.endDate
+        }
+
         const hasSignedIn = userToken !== "";
-        const validTitle = data.get('title') !== null && data.get('title') !== "";
-        const validDescription = data.get('description') !== null && data.get('description') !== "";
-        const validReserve = data.get('reserve') !== null && Number(data.get('reserve')) > 0;
-        const validEndDate = (dateStr: string | null) => {
-            return (dateStr !== null && (Date.parse(dateStr) - Date.now()) > 0)
+
+        const validReserve = Number(data.get('reserve')) === 0 ||  Number(data.get('reserve')) > 0;
+        const validEndDate = (dateStr: string) => {
+            if (dateStr === "") {
+                return true
+            } else {
+                return (Date.parse(dateStr) - Date.now()) > 0
+            }
         }
-        const validCategoryId = parseInt(category) > 0;
 
-
-        if (!validDescription) {
-            setErrorMessage("Invalid Description");
-
-        }
 
         if (!validReserve) {
             setErrorMessage("Invalid Reserve");
@@ -95,38 +146,29 @@ const CreateAuction = () => {
 
         }
 
-        if (!validCategoryId) {
-            setErrorMessage("Invalid Category");
-
-        }
-
-        if (!validTitle) {
-            setErrorMessage("Invalid Title");
-
-        }
 
         if (!hasSignedIn) {
             setErrorMessage("You can only create an auction after sign in");
 
         }
 
-        if (validTitle && validDescription &&
-            validReserve && validCategoryId &&
-            validEndDate(String(data.get('endDate')))) {
-            axios.post('http://localhost:4941/api/v1/auctions', auctionData, config)
+        if (validReserve && validEndDate(String(data.get('endDate')))) {
+            const url = 'http://localhost:4941/api/v1/auctions/' + id
+            axios.patch(url, auctionData, config)
                 .then(function (response) {
                     console.log(response);
                     const auctionId = response.data["auctionId"];
 
                     // upload image if exist
                     if (selectedFile !== null) {
+                        console.log("uploading img")
                         const imgConfig = {
                             headers: {
                                 "Content-Type": "image/jpeg",
                                 "X-Authorization": userToken,
                             }
                         };
-                       const uploadUrl = 'http://localhost:4941/api/v1/auctions/' + auctionId + '/image';
+                        const uploadUrl = 'http://localhost:4941/api/v1/auctions/' + auctionId + '/image';
                         const formData = new FormData();
                         formData.append("selectedFile", selectedFile);
                         axios.post(uploadUrl, formData, imgConfig)
@@ -142,7 +184,7 @@ const CreateAuction = () => {
                 })
                 .catch(function (error) {
                     console.log(error);
-                    setErrorMessage("Can't create the auction")
+                    setErrorMessage("Can't modify the auction")
                     handleClick()
                 });
         } else {
@@ -164,6 +206,7 @@ const CreateAuction = () => {
         return  <MenuItem key={categoryId} value={categoryId}>{categoryName}</MenuItem>
     })
 
+
     return (
         <ThemeProvider theme={theme}>
             {SimpleAppBar()}
@@ -182,13 +225,14 @@ const CreateAuction = () => {
                         <LocalOfferIcon/>
                     </Avatar>
                     <Typography component="h1" variant="h5">
-                        Create New Auction
+                        Edit Auction
                     </Typography>
                     <Box component="form" noValidate onSubmit={handleSubmit} sx={{mt: 3}}>
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <TextField
                                     name="title"
+                                    helperText={auction['title']}
                                     required
                                     fullWidth
                                     id="title"
@@ -203,7 +247,7 @@ const CreateAuction = () => {
                                         required
                                         labelId="category-label"
                                         id="category"
-                                        value={category}
+                                        value = {category}
                                         label="Category"
                                         onChange={handleCategoryChange}
                                     >
@@ -229,7 +273,7 @@ const CreateAuction = () => {
                                     name="reserve"
                                     label="Reserve Price"
                                     id="reserve"
-                                    helperText="Must be $1 or more"
+                                    helperText= {'$' + auction['reserve']}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -258,7 +302,7 @@ const CreateAuction = () => {
                             variant="contained"
                             sx={{mt: 3, mb: 2}}
                         >
-                            Create
+                            Modify
                         </Button>
                         <Snackbar open={open} autoHideDuration={10000} onClose={handleClose}>
                             <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
@@ -272,4 +316,4 @@ const CreateAuction = () => {
     );
 }
 
-export default CreateAuction;
+export default EditAuction;

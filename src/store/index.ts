@@ -11,14 +11,28 @@ interface TokenState {
 }
 
 
-const useStore = create<TokenState>((set) => ({
+const useStore1 = create<TokenState>((set) => ({
     userToken: getLocalStorage('userToken') || "",
 
     setUserToken: (userToken: string) => set(() => {
         setLocalStorage('userToken', userToken)
         return {userToken: userToken}
     }),
-
 }))
 
-export const useTokenStore = useStore;
+interface UserIdState {
+    userId: string;
+    setUserId: (userId: string) => void;
+}
+
+const useStore2 = create<UserIdState>((set) => ({
+    userId: getLocalStorage('userId') || "",
+
+    setUserId: (userId: string) => set(() => {
+        setLocalStorage('userId', userId)
+        return {userId: userId}
+    }),
+}))
+
+export const useTokenStore = useStore1;
+export const useUserIdStore = useStore2;

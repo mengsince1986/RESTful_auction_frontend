@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
-import { useTokenStore } from "../store";
+import { useTokenStore, useUserIdStore } from "../store";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -15,12 +15,12 @@ const SimpleAppBar = () => {
     const [errorMessage, setErrorMessage] = React.useState("");
     const userToken = useTokenStore(state => state.userToken);
     const setUserToken = useTokenStore(state => state.setUserToken);
+    const setUserId = useUserIdStore(state => state.setUserId)
     const navigate = useNavigate();
 
     const logoutUser = () => {
-        console.log("logout token:");
-        console.log(userToken);
         setUserToken("");
+        setUserId("");
         const config = {
             headers: {
                 "X-Authorization": userToken,
@@ -68,6 +68,14 @@ const SimpleAppBar = () => {
                     <Button color="inherit"
                             href="http://localhost:8080/auctions/">
                         Auctions
+                    </Button>
+                    <Button color="inherit"
+                            href="http://localhost:8080/auctions/create">
+                        Create New Auction
+                    </Button>
+                    <Button color="inherit"
+                            href="http://localhost:8080/auctions/my">
+                        MY Auctions
                     </Button>
                     <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
                       COSC365 mzh103

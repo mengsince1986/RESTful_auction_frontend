@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React from "react";
-import {Button, AlertTitle, Alert} from "@mui/material";
+import {Button, AlertTitle, Alert, Avatar} from "@mui/material";
 import {
     DataGrid,
     GridColDef,
@@ -149,10 +149,9 @@ const AuctionsDataGrid = () => {
             width: 200,
             editable: true,
             sortable: false,
-            renderCell: (params) => <img
-                src={'http://localhost:4941/api/v1/auctions/'
-                    + params.value + '/image'}
-                alt="hero" width="100%"/>
+            renderCell: (params) =><Avatar
+                alt="auction" variant="square"
+                sx={{width: 110, height: 110, margin: "auto"}} src={'http://localhost:4941/api/v1/auctions/' + params.value + '/image'}/>
         },
         {
             field: 'title',

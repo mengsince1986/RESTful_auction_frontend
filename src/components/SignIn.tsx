@@ -12,7 +12,7 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useTokenStore } from "../store";
+import { useTokenStore, useUserIdStore } from "../store";
 import SimpleAppBar from "./AppBar";
 import {Alert, Snackbar} from "@mui/material";
 
@@ -21,6 +21,8 @@ const theme = createTheme();
 const SignIn = () =>  {
     const navigate = useNavigate();
     const setUserToken = useTokenStore(state => state.setUserToken);
+    const userId = useUserIdStore(state => state.userId)
+    const setUserId = useUserIdStore(state => state.setUserId);
     const [open, setOpen] = React.useState(false);
     const [error, setError] = React.useState("")
 
@@ -47,6 +49,11 @@ const SignIn = () =>  {
             .then(function (response) {
                 console.log(response);
                 setUserToken(response.data["token"]);
+                const newUserId = String(response.data["userId"])
+                console.log(typeof newUserId)
+                console.log(newUserId)
+                setUserId(newUserId)
+                console.log("global userID: " + userId)
                 navigate('/auctions');
             })
             .catch(function (error) {

@@ -532,7 +532,7 @@ const Auction = () => {
     }
 
     const paper: CSS.Properties = {
-        padding: "10px",
+        padding: "0px",
         margin: "auto",
         display: "block",
         width: "fit-content",

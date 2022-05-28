@@ -49,7 +49,7 @@ const SignIn = () =>  {
             .then(function (response) {
                 console.log(response);
                 setUserToken(response.data["token"]);
-                const newUserId = String(response.data["userId"])
+                const newUserId = response.data["userId"]
                 console.log(typeof newUserId)
                 console.log(newUserId)
                 setUserId(newUserId)

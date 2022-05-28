@@ -20,7 +20,7 @@ const SimpleAppBar = () => {
 
     const logoutUser = () => {
         setUserToken("");
-        setUserId("");
+        setUserId(0);
         const config = {
             headers: {
                 "X-Authorization": userToken,
@@ -44,7 +44,17 @@ const SimpleAppBar = () => {
 
         if (userToken !== "") {
             return (
-                <Button color="inherit" onClick={logoutUser}>LogOut</Button>
+                <div>
+                    <Button color="inherit"
+                            href="http://localhost:8080/auctions/create">
+                        Create New Auction
+                    </Button>
+                    <Button color="inherit"
+                            href="http://localhost:8080/auctions/my">
+                        MY Auctions
+                    </Button>
+                    <Button color="inherit" onClick={logoutUser}>LogOut</Button>
+                </div>
             )
         } else {
             return (
@@ -69,14 +79,7 @@ const SimpleAppBar = () => {
                             href="http://localhost:8080/auctions/">
                         Auctions
                     </Button>
-                    <Button color="inherit"
-                            href="http://localhost:8080/auctions/create">
-                        Create New Auction
-                    </Button>
-                    <Button color="inherit"
-                            href="http://localhost:8080/auctions/my">
-                        MY Auctions
-                    </Button>
+
                     <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
                       COSC365 mzh103
                     </Typography>

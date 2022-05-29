@@ -5,70 +5,31 @@ import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
-import {Alert, FormControl, Input, InputLabel, MenuItem, Select, SelectChangeEvent, Snackbar} from "@mui/material";
 import axios from "axios";
-import {useTokenStore} from "../store";
+import { useNavigate } from "react-router-dom";
+import {Alert, Checkbox, FormControlLabel, Input, Snackbar} from "@mui/material";
+import { useTokenStore, useUserIdStore } from "../store";
 import SimpleAppBar from "./AppBar";
-import {useParams} from "react-router-dom";
 
 const theme = createTheme();
 
 const EditUser = () => {
-    const {id} = useParams();
-    const [categories, setCategories] = React.useState<Array<Category>>([])
-    const [category, setCategory] = React.useState('');
-    const [auction, setAuction] = React.useState<AuctionDetail>({
-        auctionId: 0,
-        title: "",
-        description: "",
-        endDate: "",
-        categoryId: 0,
-        reserve: 0,
-        sellerId: 0,
-        sellerFirstName: "",
-        sellerLastName: "",
-        numBids: 0,
-        highestBid: 0
-    })
+    const navigate = useNavigate();
+    const [open, setOpen] = React.useState(false);
+    const userId = useUserIdStore(state => state.userId);
     const userToken = useTokenStore(state => state.userToken);
-    const [selectedFile, setSelectedFile] = React.useState(null);
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
-    const [open, setOpen] = React.useState(false);
+    const [checked, setChecked] = React.useState(false);
+    const [selectedFile, setSelectedFile] = React.useState(null);
 
-    React.useEffect(() => {
-        const getAuction = () => {
-            axios.get('http://localhost:4941/api/v1/auctions/' + id)
-                .then((response) => {
-                    setErrorFlag(false)
-                    setErrorMessage("")
-                    setAuction(response.data)
-                }, (error) => {
-                    setErrorFlag(true)
-                    setErrorMessage(error.toString())
-                })
-        }
-
-        const getCategories = () => {
-            axios.get('http://localhost:4941/api/v1/auctions/categories')
-                .then((response) => {
-                    setErrorFlag(false)
-                    setErrorMessage("")
-                    setCategories(response.data)
-                }, (error) => {
-                    setErrorFlag(true)
-                    setErrorMessage(error.toString() +
-                        ": can't get categories")
-                    handleClick()
-                })
-        }
-        getCategories()
-        getAuction()
-    }, [])
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setChecked(event.target.checked);
+    };
 
     const handleClick = () => {
         setOpen(true);
@@ -81,6 +42,11 @@ const EditUser = () => {
         setOpen(false);
     };
 
+    const handleFileSelect = (event:any) => {
+        setSelectedFile(event.target.files[0])
+    }
+
+
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -90,129 +56,148 @@ const EditUser = () => {
             }
         };
 
+        const updateUrl = 'http://localhost:4941/api/v1/users/' + userId
+        const profileData = {
+            firstName: data.get('firstName'),
+            lastName: data.get('lastName'),
+            email: data.get('email'),
+            currentPassword: data.get('currentPassword'),
+            password: data.get('password'),
+        }
 
-        const auctionData = {
-            title: data.get('title'),
-            description: data.get('description'),
-            reserve: data.get('reserve'),
-            categoryId: parseInt(category),
-            endDate: data.get('endDate')
+        if (data.get('firstName') === '') {
+            // @ts-ignore
+            delete profileData.firstName;
+        }
+
+        if (data.get('lastName') === '') {
+            // @ts-ignore
+            delete profileData.lastName;
+        }
+
+        if (data.get('email') === '') {
+            // @ts-ignore
+            delete profileData.email;
+        }
+
+        if (data.get('currentPassword') === '') {
+            // @ts-ignore
+            delete profileData.currentPassword;
+        }
+
+        if (data.get('password') === '') {
+            // @ts-ignore
+            delete profileData.password;
+        }
+
+        const isEmptyData = () => {
+            setErrorFlag(true)
+            setErrorMessage("The form is empty")
+            return Object.keys(profileData).length === 0
+        }
+
+        const isValidPassword = () => {
+            if (data.get('password') !== "" && data.get('currentPassword') === "") {
+                setErrorFlag(true)
+                setErrorMessage("Need provide current password")
+                return false
+            }
+            if (data.get('password') === "" && data.get('currentPassword') !== "") {
+                setErrorFlag(true)
+                setErrorMessage("Need provide new password")
+                return false
+            }
+            if (data.get('password') !== null) {
+                if (String(data.get('password')).length === 6) {
+                    setErrorFlag(true)
+                    setErrorMessage("New password must be 6 characters")
+                    return false
+                }
+            }
+            return true;
         };
 
-        if (data.get('title') === '') {
-            // @ts-ignore
-            delete auctionData.title;
-        }
-
-        if (data.get('description') === '') {
-            // @ts-ignore
-            delete auctionData.description;
-        }
-
-        if (Number(data.get('reserve')) === 0) {
-            // @ts-ignore
-            delete auctionData.reserve;
-        }
-
-        if (category === "") {
-            // @ts-ignore
-            delete auctionData.categoryId;
-        }
-
-        if (data.get('endDate') === '') {
-            // @ts-ignore
-            delete auctionData.endDate
-        }
-
-        const hasSignedIn = userToken !== "";
-
-        const validReserve = Number(data.get('reserve')) === 0 ||  Number(data.get('reserve')) > 0;
-        const validEndDate = (dateStr: string) => {
-            if (dateStr === "") {
+        const isValidEmail = () => {
+            if (String(data.get("email")) === "") {
                 return true
-            } else {
-                return (Date.parse(dateStr) - Date.now()) > 0
             }
+            if (/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(String(data.get("email"))))
+            {
+                return true
+            }
+            setErrorFlag(true)
+            setErrorMessage("The email is invalid")
+            return false
         }
 
-
-        if (!validReserve) {
-            setErrorMessage("Invalid Reserve");
-
+        if (!isEmptyData() && isValidEmail() && isValidPassword()) {
+            axios.patch(updateUrl, profileData, config)
+                .then((response) => {
+                    console.log(response)
+                    setErrorFlag(false)
+                    setErrorMessage("")
+                    navigate('/update_profile_message')
+                }, (error) => {
+                    setErrorFlag(true)
+                    setErrorMessage(error.toString())
+                    handleClick()
+                })
+                .catch(function (error) {
+                    setErrorMessage(error.response.statusText);
+                    handleClick();
+                });
+        } else {
+            setOpen(true);
+            handleClick();
         }
 
-        if (!validEndDate(String(data.get('endDate')))) {
-            setErrorMessage("Invalid End Date");
-
-        }
-
-
-        if (!hasSignedIn) {
-            setErrorMessage("You can only create an auction after sign in");
-
-        }
-
-        if (validReserve && validEndDate(String(data.get('endDate')))) {
-            const url = 'http://localhost:4941/api/v1/auctions/' + id
-            axios.patch(url, auctionData, config)
+        if (checked) {
+            const config = {
+                headers: {
+                    "X-Authorization": userToken,
+                }
+            };
+            const url = 'http://localhost:4941/api/v1/users/' + userId + '/image'
+            axios.delete(url, config)
                 .then(function (response) {
-                    console.log(response);
-                    const auctionId = response.data["auctionId"];
-
-                    // upload image if exist
-                    if (selectedFile !== null) {
-                        console.log("uploading img")
-                        const imgConfig = {
-                            headers: {
-                                "Content-Type": "image/jpeg",
-                                "X-Authorization": userToken,
-                            }
-                        };
-                        const uploadUrl = 'http://localhost:4941/api/v1/auctions/' + auctionId + '/image';
-                        const formData = new FormData();
-                        formData.append("selectedFile", selectedFile);
-                        axios.post(uploadUrl, formData, imgConfig)
-                            .then(function (response) {
-                                console.log(response);
-                            })
-                            .catch(function (error) {
-                                console.log(error);
-                            });
-                    }
-
-
+                    navigate('/update_profile_message')
                 })
                 .catch(function (error) {
                     console.log(error);
+                    setErrorFlag(true)
                     setErrorMessage(error.response.statusText)
-                    handleClick()
                 });
-        } else {
-            handleClick()
         }
+
+        if (selectedFile !== null) {
+            const imgConfig = {
+                headers: {
+                    "Content-Type": "image/jpeg",
+                    "X-Authorization": userToken,
+                }
+            };
+            const uploadUrl = 'http://localhost:4941/api/v1/users/' + userId + '/image';
+            const formData = new FormData();
+            formData.append("selectedFile", selectedFile);
+            axios.post(uploadUrl, formData, imgConfig)
+                .then(function (response) {
+                    console.log(response);
+                    navigate('/update_profile_message')
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    setErrorFlag(true)
+                    setErrorMessage(error.response.statusText)
+                });
+        }
+
     };
-
-    const handleCategoryChange = (event: SelectChangeEvent) => {
-        setCategory(event.target.value as string);
-    };
-
-    const handleFileSelect = (event:any) => {
-        setSelectedFile(event.target.files[0])
-    }
-
-    const categoryItems = categories.map((category) => {
-        const categoryId = category["categoryId"]
-        const categoryName = category["name"]
-        return  <MenuItem key={categoryId} value={categoryId}>{categoryName}</MenuItem>
-    })
-
 
     return (
         <ThemeProvider theme={theme}>
             {SimpleAppBar()}
             <Container component="main" maxWidth="xs">
-
-                <CssBaseline/>
+                <CssBaseline />
                 <Box
                     sx={{
                         marginTop: 8,
@@ -221,86 +206,84 @@ const EditUser = () => {
                         alignItems: 'center',
                     }}
                 >
-                    <Avatar sx={{m: 1, bgcolor: 'secondary.main', width: 50, height: 50}}>
-                        <LocalOfferIcon/>
+                    <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+                        <LockOutlinedIcon />
                     </Avatar>
-                    <Typography component="h1" variant="h5">
+                    <Typography component="h1" variant="h5" color="secondary.main">
                         Edit Profile
                     </Typography>
-                    <Box component="form" noValidate onSubmit={handleSubmit} sx={{mt: 3}}>
+                    <Box component="form" noValidate  onSubmit={handleSubmit} sx={{ mt: 3 }}>
                         <Grid container spacing={2}>
-                            <Grid item xs={12}>
+                            <Grid item xs={12} sm={6}>
                                 <TextField
-                                    name="title"
-                                    helperText={auction['title']}
-                                    required
+                                    autoComplete="given-name"
+                                    name="firstName"
                                     fullWidth
-                                    id="title"
-                                    label="Title"
+                                    id="firstName"
+                                    label="First Name"
                                     autoFocus
                                 />
                             </Grid>
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="category-label">Category</InputLabel>
-                                    <Select
-                                        required
-                                        labelId="category-label"
-                                        id="category"
-                                        value = {category}
-                                        label="Category"
-                                        onChange={handleCategoryChange}
-                                    >
-                                        {categoryItems}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12}>
+                            <Grid item xs={12} sm={6}>
                                 <TextField
-                                    required
                                     fullWidth
-                                    id="endDate"
-                                    name="endDate"
-                                    type="date"
-                                    helperText="The end date of the auction"
+                                    id="lastName"
+                                    label="Last Name"
+                                    name="lastName"
+                                    autoComplete="family-name"
                                 />
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
-                                    required
                                     fullWidth
-                                    type="number"
-                                    name="reserve"
-                                    label="Reserve Price"
-                                    id="reserve"
-                                    helperText= {'$' + auction['reserve']}
+                                    id="email"
+                                    label="Email Address"
+                                    name="email"
+                                    autoComplete="email"
                                 />
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
-                                    required
                                     fullWidth
-                                    multiline={true}
-                                    rows={5}
-                                    type="text"
-                                    name="description"
-                                    label="Description"
-                                    id="description"
+                                    name="currentPassword"
+                                    label="Current Password"
+                                    type="password"
+                                    id="currentPassword"
                                 />
                             </Grid>
                             <Grid item xs={12}>
-                                <label htmlFor="auctionImage">
-                                    <Input id="auctionImage" name="auctionImage"
+                                <TextField
+                                    fullWidth
+                                    name="password"
+                                    label="New Password"
+                                    type="password"
+                                    id="password"
+                                    autoComplete="new-password"
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox checked={checked}
+                                                  onChange={handleChange}
+                                                  inputProps={{ 'aria-label': 'controlled' }}
+                                        />
+                                    }
+                                    label="Delete Image"
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <label htmlFor="userImage">
+                                    <Input id="userImage" name="userImage"
                                            type="file" onChange={handleFileSelect}/>
                                 </label>
                             </Grid>
                         </Grid>
-
                         <Button
                             type="submit"
                             fullWidth
                             variant="contained"
-                            sx={{mt: 3, mb: 2}}
+                            sx={{ mt: 3, mb: 2 }}
                         >
                             Modify
                         </Button>

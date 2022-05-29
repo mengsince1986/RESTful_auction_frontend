@@ -149,7 +149,7 @@ const CreateAuction = () => {
                             });
                     }
 
-                    navigate('/message');
+                    navigate('/new_auction_message');
                 })
                 .catch(function (error) {
                     console.log(error);

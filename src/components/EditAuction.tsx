@@ -13,7 +13,7 @@ import {Alert, FormControl, Input, InputLabel, MenuItem, Select, SelectChangeEve
 import axios from "axios";
 import {useTokenStore} from "../store";
 import SimpleAppBar from "./AppBar";
-import {useParams} from "react-router-dom";
+import {useParams, useNavigate} from "react-router-dom";
 
 const theme = createTheme();
 
@@ -39,6 +39,7 @@ const EditAuction = () => {
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
     const [open, setOpen] = React.useState(false);
+    const navigate = useNavigate();
 
     React.useEffect(() => {
         const getAuction = () => {
@@ -161,7 +162,6 @@ const EditAuction = () => {
 
                     // upload image if exist
                     if (selectedFile !== null) {
-                        console.log("uploading img")
                         const imgConfig = {
                             headers: {
                                 "Content-Type": "image/jpeg",
@@ -180,7 +180,7 @@ const EditAuction = () => {
                             });
                     }
 
-
+                    navigate('/update_auction_message');
                 })
                 .catch(function (error) {
                     console.log(error);

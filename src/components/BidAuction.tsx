@@ -50,6 +50,7 @@ const BidAuction = () => {
     const [open, setOpen] = React.useState(false);
     const [auctionId, setAuctionId] = React.useState(0);
     const [currentBid, setCurrentBid] = React.useState(0);
+    const [reserve, setReserve] = React.useState(0);
     const userToken = useTokenStore(state => state.userToken);
     const userId = useUserIdStore(state => state.userId);
 
@@ -62,6 +63,7 @@ const BidAuction = () => {
                     setErrorMessage("")
                     setAuction(response.data)
                     setCurrentBid(response.data.highestBid)
+                    setReserve(response.data.reserve)
                 }, (error) => {
                     setErrorFlag(true)
                     setErrorMessage(error.toString())
@@ -136,7 +138,7 @@ const BidAuction = () => {
             amount: bid
         };
 
-        if (bid > currentBid) {
+        if (bid > currentBid && bid >= reserve) {
             const url = 'http://localhost:4941/api/v1/auctions/'+id+'/bids'
             axios.post(url, auctionData, config)
                 .then(function (response) {
@@ -149,7 +151,7 @@ const BidAuction = () => {
                     handleClick()
                 });
         } else {
-            setErrorMessage("You need to bid higher than $" + currentBid)
+            setErrorMessage("You need to bid higher than $" + Math.max(reserve, currentBid))
             handleClick()
         }
     };

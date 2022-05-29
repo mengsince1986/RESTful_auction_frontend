@@ -5,7 +5,6 @@ import {
     Paper, Typography
 } from "@mui/material";
 import CSS from 'csstype';
-import {useParams} from "react-router-dom";
 import SimpleAppBar from "./AppBar";
 import { useTokenStore, useUserIdStore } from "../store";
 

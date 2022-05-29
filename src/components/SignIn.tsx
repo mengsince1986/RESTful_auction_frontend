@@ -21,7 +21,6 @@ const theme = createTheme();
 const SignIn = () =>  {
     const navigate = useNavigate();
     const setUserToken = useTokenStore(state => state.setUserToken);
-    const userId = useUserIdStore(state => state.userId)
     const setUserId = useUserIdStore(state => state.setUserId);
     const [open, setOpen] = React.useState(false);
     const [error, setError] = React.useState("")
@@ -49,8 +48,8 @@ const SignIn = () =>  {
             .then(function (response) {
                 console.log(response);
                 setUserToken(response.data["token"]);
-                const newUserId = response.data["userId"]
-                setUserId(newUserId)
+                //const newUserId = response.data["userId"]
+                setUserId(response.data["userId"])
                 navigate('/auctions');
             })
             .catch(function (error) {

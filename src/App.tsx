@@ -10,7 +10,9 @@ import CreateAuction from "./components/CreateAuction";
 import MyAuctions from "./components/MyAuctions";
 import EditAuction from "./components/EditAuction";
 import BidAuction from "./components/BidAuction";
-import MessagePage from "./components/MessagePage";
+import NewAuctionMessagePage from "./components/NewAuctionMessagePage";
+import EditAuctionMessage from "./components/EditAuctionMessage";
+import EditProfileMessage from "./components/EditProfileMessage";
 import EditUser from "./components/EditUser";
 
 function App() {
@@ -29,7 +31,9 @@ function App() {
                         <Route path="/signin/" element={<SignIn/>}/>
                         <Route path="/profile/" element={<Profile/>}/>
                         <Route path="/profile/edit" element={<EditUser/>}/>
-                        <Route path="/message/" element={<MessagePage/>}/>
+                        <Route path="/new_auction_message/" element={<NewAuctionMessagePage/>}/>
+                        <Route path="/update_auction_message/" element={<EditAuctionMessage/>}/>
+                        <Route path="/update_profile_message/" element={<EditProfileMessage/>}/>
                         <Route path="/" element={<AuctionsDataGrid/>}/>
                         <Route path="*" element={<AuctionsDataGrid/>}/>
                     </Routes>

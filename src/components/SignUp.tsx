@@ -13,7 +13,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {Alert, Snackbar} from "@mui/material";
-import { useTokenStore } from "../store";
+import { useTokenStore, useUserIdStore } from "../store";
 import SimpleAppBar from "./AppBar";
 
 const theme = createTheme();
@@ -23,6 +23,7 @@ const SignUp = () => {
     const [open, setOpen] = React.useState(false);
     const [error, setError] = React.useState("")
     const setUserToken = useTokenStore(state => state.setUserToken);
+    const setUserId = useUserIdStore(state => state.setUserId);
 
     const handleClick = () => {
         setOpen(true);
@@ -50,6 +51,7 @@ const SignUp = () => {
                 password: data.get('password'),
             })
                 .then(function (response) {
+                    setUserId(response.data["userId"])
                     axios.post('http://localhost:4941/api/v1/users/login', {
                         email: data.get('email'),
                         password: data.get('password'),

@@ -99,7 +99,7 @@ const Auction = () => {
                 }, (error) => {
                     setErrorFlag(true)
                     setErrorMessage(error.toString() +
-                        ": can't get categories")
+                        ": can't get bids")
                 })
         }
         getAuction()

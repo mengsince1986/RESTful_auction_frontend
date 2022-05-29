@@ -1,9 +1,7 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import AppBar from "./AppBar";
 import {Paper} from "@mui/material";
@@ -17,15 +15,15 @@ const bull = (
     </Box>
 );
 
-const MessagePage = () => {
+const EditProfileMessage = () => {
 
     return (
         <Paper elevation={10}
-        sx={{
-            padding: "0px",
-            margin: "auto",
-            display: "block",
-            width: "100%",}}>
+               sx={{
+                   padding: "0px",
+                   margin: "auto",
+                   display: "block",
+                   width: "100%",}}>
             {AppBar()}
             <div style={{
                 display: "block",
@@ -34,10 +32,10 @@ const MessagePage = () => {
                 <Card sx={{minWidth: 275}}>
                     <CardContent>
                         <Typography sx={{fontSize: 14}} color="text.secondary" gutterBottom>
-                            Congratulations!
+                            Yes!
                         </Typography>
                         <Typography variant="h5" component="div">
-                            You have create a new auction!
+                            You have updated your profile!
                         </Typography>
                     </CardContent>
                 </Card>
@@ -46,4 +44,4 @@ const MessagePage = () => {
     );
 }
 
-export default MessagePage;
+export default EditProfileMessage;

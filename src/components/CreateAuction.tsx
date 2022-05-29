@@ -133,19 +133,21 @@ const CreateAuction = () => {
                     if (selectedFile !== null) {
                         const imgConfig = {
                             headers: {
-                                "Content-Type": "image/jpeg",
+                                "content-type": "image/jpeg",
                                 "X-Authorization": userToken,
                             }
                         };
                        const uploadUrl = 'http://localhost:4941/api/v1/auctions/' + auctionId + '/image';
                         const formData = new FormData();
-                        formData.append("selectedFile", selectedFile, "heroImage.jpeg");
+                        formData.append("selectedFile", selectedFile);
                         axios.post(uploadUrl, formData, imgConfig)
                             .then(function (response) {
                                 console.log(response);
                             })
                             .catch(function (error) {
                                 //console.log(error);
+                                setErrorMessage(error.response.statusText)
+                                setErrorFlag(true)
                             });
                     }
 
@@ -153,7 +155,7 @@ const CreateAuction = () => {
                 })
                 .catch(function (error) {
                     console.log(error);
-                    setErrorMessage("Can't create the auction")
+                    setErrorMessage(error.response.statusText)
                     handleClick()
                 });
         } else {

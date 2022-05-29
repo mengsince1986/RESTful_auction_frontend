@@ -20,7 +20,6 @@ const MyAuctionsDataGrid = () => {
     const [auctions, setAuctions] = React.useState<Array<Auction>>([])
     const [myBidAuctions, setMyBidAuctions] = React.useState<Array<Auction>>([])
     const [categories, setCategories] = React.useState<Array<Category>>([])
-    const [bids, setBids] = React.useState<Array<Bid>>([])
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
 

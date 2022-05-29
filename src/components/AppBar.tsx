@@ -4,8 +4,6 @@ import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
 import { useTokenStore, useUserIdStore } from "../store";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -52,6 +50,14 @@ const SimpleAppBar = () => {
                     <Button color="inherit"
                             href="http://localhost:8080/auctions/my">
                         MY Auctions
+                    </Button>
+                    <Button color="inherit"
+                            href="http://localhost:8080/profile">
+                        MY Profile
+                    </Button>
+                    <Button color="inherit"
+                            href="http://localhost:8080/profile/edit">
+                        Edit Profile
                     </Button>
                     <Button color="inherit" onClick={logoutUser}>LogOut</Button>
                 </div>

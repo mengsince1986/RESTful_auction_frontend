@@ -5,11 +5,6 @@ import {
     AlertTitle,
     Alert,
     Avatar,
-    Dialog,
-    DialogTitle,
-    DialogContentText,
-    DialogContent,
-    DialogActions
 } from "@mui/material";
 import {
     DataGrid,
@@ -18,36 +13,13 @@ import {
     GridToolbarContainer, GridToolbarQuickFilter, GridToolbarFilterButton,
 } from "@mui/x-data-grid";
 import SimpleAppBar from "./AppBar";
-import {useTokenStore, useUserIdStore} from "../store";
-import {useNavigate} from "react-router-dom";
-// import type {} from '@mui/x-data-grid/themeAugmentation'; // When using TypeScript 4.x and above
-
-/*
-const theme = createTheme({
-    components: {
-        // Use `MuiDataGrid` on DataGrid, DataGridPro and DataGridPremium
-        MuiDataGrid: {
-            styleOverrides: {
-                root: {
-                    backgroundColor: 'red',
-                },
-            },
-        },
-    },
-});
-*/
 
 const AuctionsDataGrid = () => {
     const [auctions, setAuctions] = React.useState<Array<Auction>>([]);
     const [categories, setCategories] = React.useState<Array<Category>>([]);
-    const userId = useUserIdStore(state => state.userId);
-    const userToken = useTokenStore(state => state.userToken);
     const [errorFlag, setErrorFlag] = React.useState(false);
     const [errorMessage, setErrorMessage] = React.useState("");
     const [pageSize, setPageSize] = React.useState<number>(5);
-    const navigate = useNavigate();
-    const [open, setOpen] = React.useState(false);
-    const [auctionId, setAuctionId] = React.useState(0);
 
 
     // useEffect
@@ -81,31 +53,6 @@ const AuctionsDataGrid = () => {
         getCategories()
     }, [])
 
-
-    const handleClickOpen = () => {
-        setOpen(true);
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-    };
-
-    const deleteAuction = () => {
-        const config = {
-            headers: {
-                "X-Authorization": userToken,
-            }
-        };
-        axios.delete('http://localhost:4941/api/v1/auctions/' + auctionId,
-            config)
-            .then((response) => {
-                console.log(response)
-                navigate('/auctions')
-            }, (error) => {
-                setErrorFlag(true)
-                setErrorMessage(error.toString())
-            })
-    }
 
     const daysBeforeClose = (params: GridValueGetterParams) => {
         const closeDate = new Date(params.value);

@@ -108,7 +108,7 @@ const EditUser = () => {
                 return false
             }
             if (data.get('password') !== null) {
-                if (String(data.get('password')).length === 6) {
+                if (String(data.get('password')).length < 6) {
                     setErrorFlag(true)
                     setErrorMessage("New password must be 6 characters")
                     return false
